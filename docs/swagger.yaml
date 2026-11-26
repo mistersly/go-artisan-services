@@ -1,14 +1,5 @@
 basePath: /v1
 definitions:
-  admin.AdminIdentity:
-    properties:
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
   admin.LoginForm:
     properties:
       email:
@@ -95,6 +86,15 @@ definitions:
       name:
         type: string
     type: object
+  auth.AdminIdentity:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
   auth.AdminToken:
     properties:
       access_token:
@@ -107,21 +107,19 @@ definitions:
       refresh_token:
         type: string
     type: object
-  auth.Token:
+  auth.LoginForm:
     properties:
-      access_token:
+      email:
         type: string
-      refresh_token:
-        type: string
-    type: object
-  forms.Token:
-    properties:
-      refresh_token:
+      password:
+        maxLength: 50
+        minLength: 3
         type: string
     required:
-    - refresh_token
+    - email
+    - password
     type: object
-  models.LoginKind:
+  auth.LoginKind:
     enum:
     - tenant_user
     - superadmin
@@ -129,23 +127,59 @@ definitions:
     x-enum-varnames:
     - LoginKindTenantUser
     - LoginKindSuperadmin
-  models.MessageResponse:
+  auth.MessageResponse:
     properties:
       message:
         type: string
     type: object
-  models.UnifiedLoginResponse:
+  auth.RefreshForm:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  auth.TenantPayload:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  auth.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  auth.UnifiedLoginResponse:
     properties:
       admin:
-        $ref: '#/definitions/admin.AdminIdentity'
+        $ref: '#/definitions/auth.AdminIdentity'
       kind:
-        $ref: '#/definitions/models.LoginKind'
+        $ref: '#/definitions/auth.LoginKind'
       tenant:
-        $ref: '#/definitions/user.TenantPayload'
+        $ref: '#/definitions/auth.TenantPayload'
       token:
         $ref: '#/definitions/auth.Token'
       user:
-        $ref: '#/definitions/user.User'
+        $ref: '#/definitions/auth.User'
+    type: object
+  auth.User:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      role:
+        type: string
+      tenant_id:
+        type: string
     type: object
   tenant.AllTenantResponse:
     properties:
@@ -272,7 +306,7 @@ paths:
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Login Admin example
       tags:
       - Admin
@@ -283,11 +317,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Logout Admin example
       tags:
       - Admin
@@ -304,7 +338,7 @@ paths:
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: List tenants (admin)
       tags:
       - Admin
@@ -326,11 +360,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Set tenant status (admin)
       tags:
       - Admin
@@ -458,22 +492,22 @@ paths:
         name: auth
         required: true
         schema:
-          $ref: '#/definitions/user.LoginForm'
+          $ref: '#/definitions/auth.LoginForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UnifiedLoginResponse'
+            $ref: '#/definitions/auth.UnifiedLoginResponse'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Unified login example
       tags:
       - Auth
@@ -488,7 +522,7 @@ paths:
         name: auth
         required: true
         schema:
-          $ref: '#/definitions/forms.Token'
+          $ref: '#/definitions/auth.RefreshForm'
       produces:
       - application/json
       responses:
@@ -499,7 +533,7 @@ paths:
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Refresh Token example
       tags:
       - Auth
@@ -525,7 +559,7 @@ paths:
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Login User example
       tags:
       - User
@@ -540,11 +574,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Logout User example
       tags:
       - User
@@ -570,7 +604,7 @@ paths:
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/models.MessageResponse'
+            $ref: '#/definitions/auth.MessageResponse'
       summary: Register User example
       tags:
       - User

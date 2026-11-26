@@ -58,7 +58,7 @@ const docTemplate = `{
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -75,13 +75,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -107,7 +107,7 @@ const docTemplate = `{
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -141,13 +141,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -342,7 +342,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.LoginForm"
+                            "$ref": "#/definitions/auth.LoginForm"
                         }
                     }
                 ],
@@ -350,19 +350,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UnifiedLoginResponse"
+                            "$ref": "#/definitions/auth.UnifiedLoginResponse"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -388,7 +388,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.Token"
+                            "$ref": "#/definitions/auth.RefreshForm"
                         }
                     }
                 ],
@@ -402,7 +402,7 @@ const docTemplate = `{
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -442,7 +442,7 @@ const docTemplate = `{
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -465,13 +465,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -511,7 +511,7 @@ const docTemplate = `{
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/models.MessageResponse"
+                            "$ref": "#/definitions/auth.MessageResponse"
                         }
                     }
                 }
@@ -519,20 +519,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "admin.AdminIdentity": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
         "admin.LoginForm": {
             "type": "object",
             "required": [
@@ -662,6 +648,20 @@ const docTemplate = `{
                 }
             }
         },
+        "auth.AdminIdentity": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "auth.AdminToken": {
             "type": "object",
             "properties": {
@@ -681,6 +681,67 @@ const docTemplate = `{
                 }
             }
         },
+        "auth.LoginForm": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
+                }
+            }
+        },
+        "auth.LoginKind": {
+            "type": "string",
+            "enum": [
+                "tenant_user",
+                "superadmin"
+            ],
+            "x-enum-varnames": [
+                "LoginKindTenantUser",
+                "LoginKindSuperadmin"
+            ]
+        },
+        "auth.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.RefreshForm": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.TenantPayload": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
         "auth.Token": {
             "type": "object",
             "properties": {
@@ -692,53 +753,43 @@ const docTemplate = `{
                 }
             }
         },
-        "forms.Token": {
-            "type": "object",
-            "required": [
-                "refresh_token"
-            ],
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.LoginKind": {
-            "type": "string",
-            "enum": [
-                "tenant_user",
-                "superadmin"
-            ],
-            "x-enum-varnames": [
-                "LoginKindTenantUser",
-                "LoginKindSuperadmin"
-            ]
-        },
-        "models.MessageResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.UnifiedLoginResponse": {
+        "auth.UnifiedLoginResponse": {
             "type": "object",
             "properties": {
                 "admin": {
-                    "$ref": "#/definitions/admin.AdminIdentity"
+                    "$ref": "#/definitions/auth.AdminIdentity"
                 },
                 "kind": {
-                    "$ref": "#/definitions/models.LoginKind"
+                    "$ref": "#/definitions/auth.LoginKind"
                 },
                 "tenant": {
-                    "$ref": "#/definitions/user.TenantPayload"
+                    "$ref": "#/definitions/auth.TenantPayload"
                 },
                 "token": {
                     "$ref": "#/definitions/auth.Token"
                 },
                 "user": {
-                    "$ref": "#/definitions/user.User"
+                    "$ref": "#/definitions/auth.User"
+                }
+            }
+        },
+        "auth.User": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "tenant_id": {
+                    "type": "string"
                 }
             }
         },
