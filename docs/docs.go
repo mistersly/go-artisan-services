@@ -44,7 +44,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.LoginForm"
+                            "$ref": "#/definitions/admin.LoginForm"
                         }
                     }
                 ],
@@ -52,7 +52,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.AuthResponse"
+                            "$ref": "#/definitions/auth.AdminToken"
                         }
                     },
                     "406": {
@@ -101,7 +101,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.AllTenantResponse"
+                            "$ref": "#/definitions/tenant.AllTenantResponse"
                         }
                     },
                     "406": {
@@ -133,7 +133,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.TenantStatusForm"
+                            "$ref": "#/definitions/admin.TenantStatusForm"
                         }
                     }
                 ],
@@ -173,7 +173,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.CreateArticleForm"
+                            "$ref": "#/definitions/article.CreateArticleForm"
                         }
                     }
                 ],
@@ -181,13 +181,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/forms.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/forms.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     }
                 }
@@ -210,13 +210,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.OneArticleResponse"
+                            "$ref": "#/definitions/article.OneArticleResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/forms.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     }
                 }
@@ -240,7 +240,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.CreateArticleForm"
+                            "$ref": "#/definitions/article.CreateArticleForm"
                         }
                     }
                 ],
@@ -248,13 +248,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/forms.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     }
                 }
@@ -275,19 +275,19 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.OneArticleResponse"
+                            "$ref": "#/definitions/article.OneArticleResponse"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/forms.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/forms.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     }
                 }
@@ -310,13 +310,13 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.AllArticleResponse"
+                            "$ref": "#/definitions/article.AllArticleResponse"
                         }
                     },
                     "406": {
                         "description": "Not Acceptable",
                         "schema": {
-                            "$ref": "#/definitions/forms.ArticleResponse"
+                            "$ref": "#/definitions/article.ArticleResponse"
                         }
                     }
                 }
@@ -342,7 +342,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.LoginForm"
+                            "$ref": "#/definitions/user.LoginForm"
                         }
                     }
                 ],
@@ -396,7 +396,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.AuthResponse"
+                            "$ref": "#/definitions/auth.AuthResponse"
                         }
                     },
                     "406": {
@@ -428,7 +428,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.LoginForm"
+                            "$ref": "#/definitions/user.LoginForm"
                         }
                     }
                 ],
@@ -436,7 +436,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserLoginResponse"
+                            "$ref": "#/definitions/user.UserLoginResponse"
                         }
                     },
                     "406": {
@@ -497,7 +497,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/forms.RegisterForm"
+                            "$ref": "#/definitions/user.RegisterForm"
                         }
                     }
                 ],
@@ -505,7 +505,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.UserLoginResponse"
+                            "$ref": "#/definitions/user.UserLoginResponse"
                         }
                     },
                     "406": {
@@ -519,18 +519,87 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "forms.ArticleResponse": {
+        "admin.AdminIdentity": {
             "type": "object",
             "properties": {
-                "id": {
-                    "type": "integer"
+                "email": {
+                    "type": "string"
                 },
-                "message": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }
         },
-        "forms.CreateArticleForm": {
+        "admin.LoginForm": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
+                }
+            }
+        },
+        "admin.TenantStatusForm": {
+            "type": "object",
+            "required": [
+                "status"
+            ],
+            "properties": {
+                "status": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
+                }
+            }
+        },
+        "article.AllArticleResponse": {
+            "type": "object",
+            "properties": {
+                "results": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/article.Result"
+                    }
+                }
+            }
+        },
+        "article.ArticleResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "integer"
+                },
+                "user": {
+                    "$ref": "#/definitions/article.UserResponse"
+                }
+            }
+        },
+        "article.CreateArticleForm": {
             "type": "object",
             "required": [
                 "content",
@@ -549,7 +618,159 @@ const docTemplate = `{
                 }
             }
         },
-        "forms.LoginForm": {
+        "article.Meta": {
+            "type": "object",
+            "properties": {
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "article.OneArticleResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/article.ArticleResponse"
+                }
+            }
+        },
+        "article.Result": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/article.ArticleResponse"
+                    }
+                },
+                "meta": {
+                    "$ref": "#/definitions/article.Meta"
+                }
+            }
+        },
+        "article.UserResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.AdminToken": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.AuthResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.Token": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "forms.Token": {
+            "type": "object",
+            "required": [
+                "refresh_token"
+            ],
+            "properties": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.LoginKind": {
+            "type": "string",
+            "enum": [
+                "tenant_user",
+                "superadmin"
+            ],
+            "x-enum-varnames": [
+                "LoginKindTenantUser",
+                "LoginKindSuperadmin"
+            ]
+        },
+        "models.MessageResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.UnifiedLoginResponse": {
+            "type": "object",
+            "properties": {
+                "admin": {
+                    "$ref": "#/definitions/admin.AdminIdentity"
+                },
+                "kind": {
+                    "$ref": "#/definitions/models.LoginKind"
+                },
+                "tenant": {
+                    "$ref": "#/definitions/user.TenantPayload"
+                },
+                "token": {
+                    "$ref": "#/definitions/auth.Token"
+                },
+                "user": {
+                    "$ref": "#/definitions/user.User"
+                }
+            }
+        },
+        "tenant.AllTenantResponse": {
+            "type": "object",
+            "properties": {
+                "tenants": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/tenant.Tenant"
+                    }
+                }
+            }
+        },
+        "tenant.Tenant": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "user.LoginForm": {
             "type": "object",
             "required": [
                 "email",
@@ -566,7 +787,7 @@ const docTemplate = `{
                 }
             }
         },
-        "forms.RegisterForm": {
+        "user.RegisterForm": {
             "type": "object",
             "required": [
                 "company",
@@ -595,169 +816,7 @@ const docTemplate = `{
                 }
             }
         },
-        "forms.TenantStatusForm": {
-            "type": "object",
-            "required": [
-                "status"
-            ],
-            "properties": {
-                "status": {
-                    "type": "integer",
-                    "enum": [
-                        0,
-                        1
-                    ]
-                }
-            }
-        },
-        "forms.Token": {
-            "type": "object",
-            "required": [
-                "refresh_token"
-            ],
-            "properties": {
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.AdminIdentity": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.AllArticleResponse": {
-            "type": "object",
-            "properties": {
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Result"
-                    }
-                }
-            }
-        },
-        "models.AllTenantResponse": {
-            "type": "object",
-            "properties": {
-                "tenants": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.Tenant"
-                    }
-                }
-            }
-        },
-        "models.ArticleResponse": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "integer"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.UserResponse"
-                }
-            }
-        },
-        "models.AuthResponse": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                },
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.LoginKind": {
-            "type": "string",
-            "enum": [
-                "tenant_user",
-                "superadmin"
-            ],
-            "x-enum-varnames": [
-                "LoginKindTenantUser",
-                "LoginKindSuperadmin"
-            ]
-        },
-        "models.MessageResponse": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Meta": {
-            "type": "object",
-            "properties": {
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.OneArticleResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/models.ArticleResponse"
-                }
-            }
-        },
-        "models.Result": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/models.ArticleResponse"
-                    }
-                },
-                "meta": {
-                    "$ref": "#/definitions/models.Meta"
-                }
-            }
-        },
-        "models.Tenant": {
-            "type": "object",
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "slug": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "integer"
-                }
-            }
-        },
-        "models.TenantPayload": {
+        "user.TenantPayload": {
             "type": "object",
             "properties": {
                 "id": {
@@ -771,38 +830,7 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Token": {
-            "type": "object",
-            "properties": {
-                "access_token": {
-                    "type": "string"
-                },
-                "refresh_token": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.UnifiedLoginResponse": {
-            "type": "object",
-            "properties": {
-                "admin": {
-                    "$ref": "#/definitions/models.AdminIdentity"
-                },
-                "kind": {
-                    "$ref": "#/definitions/models.LoginKind"
-                },
-                "tenant": {
-                    "$ref": "#/definitions/models.TenantPayload"
-                },
-                "token": {
-                    "$ref": "#/definitions/models.Token"
-                },
-                "user": {
-                    "$ref": "#/definitions/models.User"
-                }
-            }
-        },
-        "models.User": {
+        "user.User": {
             "type": "object",
             "properties": {
                 "email": {
@@ -822,34 +850,20 @@ const docTemplate = `{
                 }
             }
         },
-        "models.UserLoginResponse": {
+        "user.UserLoginResponse": {
             "type": "object",
             "properties": {
                 "message": {
                     "type": "string"
                 },
                 "tenant": {
-                    "$ref": "#/definitions/models.TenantPayload"
+                    "$ref": "#/definitions/user.TenantPayload"
                 },
                 "token": {
-                    "$ref": "#/definitions/models.Token"
+                    "$ref": "#/definitions/auth.Token"
                 },
                 "user": {
-                    "$ref": "#/definitions/models.User"
-                }
-            }
-        },
-        "models.UserResponse": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
+                    "$ref": "#/definitions/user.User"
                 }
             }
         }

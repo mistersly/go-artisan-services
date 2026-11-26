@@ -8,19 +8,19 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/Massad/gin-boilerplate/forms"
-	"github.com/Massad/gin-boilerplate/models"
+	"github.com/Massad/gin-boilerplate/internal/modules/tenant"
+	validate "github.com/Massad/gin-boilerplate/internal/platform/validate"
 )
 
 // TestNewTenantFixtureIsSlugValid checks the generated tenant against the
-// models.ValidSlug contract.
+// tenant.ValidSlug contract.
 func TestNewTenantFixtureIsSlugValid(t *testing.T) {
-	tenant := NewTenantFixture(t)
+	fixture := NewTenantFixture(t)
 
-	require.True(t, models.ValidSlug(tenant.Slug), "slug %q must pass ValidSlug", tenant.Slug)
-	require.NotZero(t, tenant.ID)
-	require.Equal(t, int16(1), tenant.Status)
-	require.GreaterOrEqual(t, tenant.CreatedAt, int64(0))
+	require.True(t, tenant.ValidSlug(fixture.Slug), "slug %q must pass ValidSlug", fixture.Slug)
+	require.NotZero(t, fixture.ID)
+	require.Equal(t, int16(1), fixture.Status)
+	require.GreaterOrEqual(t, fixture.CreatedAt, int64(0))
 }
 
 // TestNewUserFixtureMatchesValidators runs the production binding validators
@@ -79,11 +79,11 @@ func TestNewArticleFixtureDeterministic(t *testing.T) {
 	require.Equal(t, formA, formB)
 }
 
-// validateForm runs the same binding.DefaultValidator the routes use, so the
+// validateForm runs the same validate.DefaultValidator the routes use, so the
 // factories cannot silently drift from the real validators.
 func validateForm(t *testing.T, form interface{}) error {
 	t.Helper()
-	binding.Validator = new(forms.DefaultValidator)
+	binding.Validator = new(validate.DefaultValidator)
 	return binding.Validator.ValidateStruct(form)
 }
 

@@ -6,17 +6,37 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/Massad/gin-boilerplate/internal/modules/admin"
+	auth "github.com/Massad/gin-boilerplate/internal/modules/auth"
+	user "github.com/Massad/gin-boilerplate/internal/modules/user"
+
 	"github.com/Massad/gin-boilerplate/forms"
+	"github.com/Massad/gin-boilerplate/internal/platform/validate"
 	"github.com/Massad/gin-boilerplate/models"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 )
 
-// AuthController ...
-type AuthController struct{}
+// AuthController serves the unified login and the refresh flow during the
+// transitory migration window: the handlers move into the auth module in
+// Phase 7.
+type AuthController struct {
+	auth *auth.Service
+	// users is the user module service injected at the composition root:
+	// the unified login runs its Login and the refresh flow re-reads the
+	// user through OneWithTenant.
+	users *user.Service
+	// admins is the admin module service injected at the composition root:
+	// the unified login runs its superadmin fallback through it.
+	admins *admin.Service
+}
 
-var authModel = new(models.AuthModel)
+// NewAuthController builds the controller on the injected auth, user and
+// admin services.
+func NewAuthController(svc *auth.Service, users *user.Service, admins *admin.Service) *AuthController {
+	return &AuthController{auth: svc, users: users, admins: admins}
+}
 
 // Login Unified godoc
 // @Summary Unified login example
@@ -26,23 +46,23 @@ var authModel = new(models.AuthModel)
 // @Tags Auth
 // @Accept json
 // @Produce json
-// @Param auth body forms.LoginForm true "Auth"
+// @Param auth body user.LoginForm true "Auth"
 // @Success 	 200  {object}  models.UnifiedLoginResponse
 // @Failure      403  {object}  models.MessageResponse
 // @Failure      406  {object}  models.MessageResponse
 // @Router /login [post]
 func (ctl AuthController) Login(c *gin.Context) {
-	var loginForm forms.LoginForm
+	var loginForm user.LoginForm
 
 	if validationErr := c.ShouldBindJSON(&loginForm); validationErr != nil {
-		message := forms.Translate(validationErr, forms.LoginMessages)
+		message := validate.Translate(validationErr, user.LoginMessages)
 		c.AbortWithStatusJSON(http.StatusNotAcceptable, gin.H{"message": message})
 		return
 	}
 
-	result, err := models.UnifiedLogin(loginForm)
+	result, err := models.UnifiedLogin(ctl.auth, ctl.users, ctl.admins, loginForm)
 	if err != nil {
-		if errors.Is(err, models.ErrTenantSuspended) {
+		if errors.Is(err, user.ErrTenantSuspended) {
 			// A suspended tenant stays observable: the 403 is not masked.
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "Tenant suspended"})
 			return
@@ -57,7 +77,7 @@ func (ctl AuthController) Login(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"kind":  result.Kind,
 			"admin": result.Admin,
-			"token": models.Token{AccessToken: result.AccessToken},
+			"token": auth.Token{AccessToken: result.AccessToken},
 		})
 		return
 	}
@@ -78,7 +98,7 @@ func (ctl AuthController) Login(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param auth body forms.Token true "Auth"
-// @Success 	 200  {object}  models.AuthResponse
+// @Success 	 200  {object}  auth.AuthResponse
 // @Failure      406  {object}  models.MessageResponse
 // @Router /token/refresh [POST]
 func (ctl AuthController) Refresh(c *gin.Context) {
@@ -124,34 +144,51 @@ func (ctl AuthController) Refresh(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}
-	// Verify ownership and consume the previous refresh token atomically.
-	deleted, delErr := authModel.ConsumeRefreshAuth(refreshUUID, userID)
-	if delErr != nil || deleted == 0 { //if any goes wrong
+	// Verify ownership and softly consume the previous refresh token: 1
+	// claims the first consumption (the record is marked delivered and a
+	// failing flow must release it), 2 claims the single recovery of a
+	// not-delivered record, 0 refuses the token.
+	consumed, consumeErr := ctl.auth.ConsumeRefreshAuth(refreshUUID, userID)
+	if consumeErr != nil || consumed == 0 { //if any goes wrong
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}
 
 	// Re-read the user through the platform pool: the role is never read back
 	// from the claims, the user must still exist and its tenant stay active.
-	row, readErr := userModel.OneWithTenant(userID)
+	row, readErr := ctl.users.OneWithTenant(userID)
 	if readErr != nil {
+		// The consumption delivered nothing: release the record so the
+		// replayed token stays recoverable during the grace.
+		if consumed == 1 {
+			_, _ = ctl.auth.ReleaseRefresh(refreshUUID, userID)
+		}
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}
 	if row.Status != 1 {
+		if consumed == 1 {
+			_, _ = ctl.auth.ReleaseRefresh(refreshUUID, userID)
+		}
 		c.JSON(http.StatusUnauthorized, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}
 
 	//Create new pairs of refresh and access tokens
-	ts, createErr := authModel.CreateToken(row.User.ID, row.User.TenantID, row.User.Role)
+	ts, createErr := ctl.auth.CreateToken(row.User.ID, row.User.TenantID, row.User.Role)
 	if createErr != nil {
+		if consumed == 1 {
+			_, _ = ctl.auth.ReleaseRefresh(refreshUUID, userID)
+		}
 		c.JSON(http.StatusForbidden, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}
 	//save the tokens metadata to redis
-	saveErr := authModel.CreateAuth(row.User.ID, row.User.TenantID, row.User.Role, ts)
+	saveErr := ctl.auth.CreateAuth(row.User.ID, row.User.TenantID, row.User.Role, ts)
 	if saveErr != nil {
+		if consumed == 1 {
+			_, _ = ctl.auth.ReleaseRefresh(refreshUUID, userID)
+		}
 		c.JSON(http.StatusForbidden, gin.H{"message": "Invalid authorization, please login again"})
 		return
 	}

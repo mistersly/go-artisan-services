@@ -13,8 +13,9 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/Massad/gin-boilerplate/forms"
-	"github.com/Massad/gin-boilerplate/models"
+	"github.com/Massad/gin-boilerplate/internal/modules/article"
+	"github.com/Massad/gin-boilerplate/internal/modules/tenant"
+	user "github.com/Massad/gin-boilerplate/internal/modules/user"
 )
 
 // seed pins gofakeit to the test name so every generated failure replays exactly.
@@ -31,16 +32,16 @@ func seed(t *testing.T) {
 	}
 }
 
-// NewTenantFixture returns a seeded tenant whose slug passes models.ValidSlug.
-func NewTenantFixture(t *testing.T) models.Tenant {
+// NewTenantFixture returns a seeded tenant whose slug passes tenant.ValidSlug.
+func NewTenantFixture(t *testing.T) tenant.Tenant {
 	t.Helper()
 	seed(t)
 	var name, slug string
 	for attempt := 0; attempt < 25; attempt++ {
 		name = gofakeit.Company()
-		slug = models.Slugify(name)
-		if models.ValidSlug(slug) {
-			return models.Tenant{
+		slug = tenant.Slugify(name)
+		if tenant.ValidSlug(slug) {
+			return tenant.Tenant{
 				ID:        uuid.MustParse(gofakeit.UUID()),
 				Slug:      slug,
 				Name:      name,
@@ -51,13 +52,13 @@ func NewTenantFixture(t *testing.T) models.Tenant {
 		}
 	}
 	t.Fatalf("no valid tenant slug after 25 seeded attempts")
-	return models.Tenant{}
+	return tenant.Tenant{}
 }
 
 // NewUserFixture returns a seeded owner together with the registration form
 // that generates it: the form fields pass the binding validators and the
 // struct carries the bcrypt hash for direct row creation.
-func NewUserFixture(t *testing.T) (models.User, forms.RegisterForm) {
+func NewUserFixture(t *testing.T) (user.User, user.RegisterForm) {
 	t.Helper()
 	seed(t)
 
@@ -68,13 +69,13 @@ func NewUserFixture(t *testing.T) (models.User, forms.RegisterForm) {
 	}
 
 	name := clampGenerated(gofakeit.Name(), 3, 20)
-	form := forms.RegisterForm{
+	form := user.RegisterForm{
 		Name:     name,
 		Email:    gofakeit.Email(),
 		Password: password,
 		Company:  clampGenerated(gofakeit.Company(), 3, 60),
 	}
-	user := models.User{
+	usr := user.User{
 		ID:       uuid.MustParse(gofakeit.UUID()),
 		Email:    form.Email,
 		Password: string(passwordHash),
@@ -82,7 +83,7 @@ func NewUserFixture(t *testing.T) (models.User, forms.RegisterForm) {
 		TenantID: uuid.MustParse(gofakeit.UUID()),
 		Role:     "owner",
 	}
-	return user, form
+	return usr, form
 }
 
 // NewAdminFixture returns a seeded superadmin pair: a unique email and a
@@ -96,10 +97,10 @@ func NewAdminFixture(t *testing.T) (email, password string) {
 // NewArticleFixture returns a seeded article form. The tenant and user ids are
 // accepted for row-building callers; the form itself carries title and content
 // only.
-func NewArticleFixture(t *testing.T, tenantID, userID uuid.UUID) forms.CreateArticleForm {
+func NewArticleFixture(t *testing.T, tenantID, userID uuid.UUID) article.CreateArticleForm {
 	t.Helper()
 	seed(t)
-	return forms.CreateArticleForm{
+	return article.CreateArticleForm{
 		Title:   clampGenerated(gofakeit.JobTitle(), 3, 100),
 		Content: clampGenerated(gofakeit.Sentence(9), 3, 1000),
 	}

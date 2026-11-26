@@ -15,9 +15,11 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/Massad/gin-boilerplate/db"
-	"github.com/Massad/gin-boilerplate/forms"
-	pgdb "github.com/Massad/gin-boilerplate/internal/db"
+	"github.com/Massad/gin-boilerplate/internal/modules/admin"
+	auth "github.com/Massad/gin-boilerplate/internal/modules/auth"
+	user "github.com/Massad/gin-boilerplate/internal/modules/user"
+	pgdb "github.com/Massad/gin-boilerplate/internal/platform/db"
+	"github.com/Massad/gin-boilerplate/internal/platform/redisdb"
 	testutil "github.com/Massad/gin-boilerplate/internal/testutil"
 	"github.com/Massad/gin-boilerplate/models"
 )
@@ -40,10 +42,10 @@ var unifiedAdminPassword string
 * Must return response code 200
  */
 func TestUnifiedLoginTenantUser(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	_, form := testutil.NewUserFixture(t)
-	resp := doRequest(testRouter, "POST", "/v1/user/register", forms.RegisterForm{
+	resp := doRequest(testRouter, "POST", "/v1/user/register", user.RegisterForm{
 		Name:     form.Name,
 		Email:    form.Email,
 		Password: form.Password,
@@ -54,14 +56,14 @@ func TestUnifiedLoginTenantUser(t *testing.T) {
 	unifiedEmail = form.Email
 	unifiedPassword = form.Password
 
-	resp = doRequest(testRouter, "POST", "/v1/login", forms.LoginForm{Email: unifiedEmail, Password: unifiedPassword}, "")
+	resp = doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: unifiedEmail, Password: unifiedPassword}, "")
 	require.Equal(t, http.StatusOK, resp.Code)
 
 	var res struct {
-		Kind   string               `json:"kind"`
-		User   models.User          `json:"user"`
-		Tenant models.TenantPayload `json:"tenant"`
-		Token  models.Token         `json:"token"`
+		Kind   string             `json:"kind"`
+		User   user.User          `json:"user"`
+		Tenant user.TenantPayload `json:"tenant"`
+		Token  auth.Token         `json:"token"`
 	}
 	decode(t, resp, &res)
 
@@ -85,7 +87,7 @@ func TestUnifiedLoginTenantUser(t *testing.T) {
 
 	// The access half of the session must live in Redis.
 	accessUUID := accessUUIDFromToken(t, res.Token.AccessToken, "ACCESS_SECRET")
-	require.Equal(t, int64(1), db.GetRedis().Exists(accessUUID).Val(), "the access token session must exist in Redis")
+	require.Equal(t, int64(1), redisdb.GetRedis().Exists(accessUUID).Val(), "the access token session must exist in Redis")
 }
 
 /**
@@ -96,7 +98,7 @@ func TestUnifiedLoginTenantUser(t *testing.T) {
 * Must return response code 200
  */
 func TestUnifiedLoginSuperadmin(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	email, password := testutil.NewAdminFixture(t)
 	unifiedAdminEmail = email
@@ -104,11 +106,14 @@ func TestUnifiedLoginSuperadmin(t *testing.T) {
 	hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	require.NoError(t, err)
 	// The admin fixture stays until TestUnifiedLoginCleanUp: the legacy
-	// endpoint tests below reuse it.
-	_, err = (models.AdminModel{}).Create(email, string(hashed), "Laure Moreau")
+	// endpoint tests below reuse it. The superadmin upsert flows through the
+	// admin module service (nil ports: the bootstrap never issues tokens,
+	// lists tenants or opens a unit of work).
+	admins := admin.NewService(admin.NewRepository(pgdb.AdminStore()), nil, nil, nil)
+	_, err = admins.Create(email, string(hashed), "Laure Moreau")
 	require.NoError(t, err)
 
-	resp := doRequest(testRouter, "POST", "/v1/login", forms.LoginForm{Email: email, Password: password}, "")
+	resp := doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: email, Password: password}, "")
 	require.Equal(t, http.StatusOK, resp.Code)
 
 	var res struct {
@@ -138,7 +143,7 @@ func TestUnifiedLoginSuperadmin(t *testing.T) {
 
 	// The superadmin session half lives under the admin: prefix in Redis.
 	adminUUID := accessUUIDFromToken(t, res.Token.AccessToken, "ADMIN_ACCESS_SECRET")
-	require.Equal(t, int64(1), db.GetRedis().Exists("admin:"+adminUUID).Val(), "the admin session must exist in Redis")
+	require.Equal(t, int64(1), redisdb.GetRedis().Exists("admin:"+adminUUID).Val(), "the admin session must exist in Redis")
 }
 
 /**
@@ -149,9 +154,9 @@ func TestUnifiedLoginSuperadmin(t *testing.T) {
 * Must return response code 406
  */
 func TestUnifiedLoginWrongPassword(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
-	resp := doRequest(testRouter, "POST", "/v1/login", forms.LoginForm{Email: unifiedEmail, Password: unifiedPassword + "-wrong"}, "")
+	resp := doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: unifiedEmail, Password: unifiedPassword + "-wrong"}, "")
 	require.Equal(t, http.StatusNotAcceptable, resp.Code)
 
 	var res struct {
@@ -161,7 +166,7 @@ func TestUnifiedLoginWrongPassword(t *testing.T) {
 	require.Equal(t, "Invalid login details", res.Message)
 
 	// The same generic failure applies to a superadmin email.
-	resp = doRequest(testRouter, "POST", "/v1/login", forms.LoginForm{Email: unifiedAdminEmail, Password: unifiedAdminPassword + "-wrong"}, "")
+	resp = doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: unifiedAdminEmail, Password: unifiedAdminPassword + "-wrong"}, "")
 	require.Equal(t, http.StatusNotAcceptable, resp.Code)
 }
 
@@ -173,10 +178,10 @@ func TestUnifiedLoginWrongPassword(t *testing.T) {
 * Must return response code 406
  */
 func TestUnifiedLoginUnknownEmail(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	before := models.DummyHashComparisons()
-	resp := doRequest(testRouter, "POST", "/v1/login", forms.LoginForm{Email: "nobody-gin-boilerplate@test.com", Password: unifiedPassword}, "")
+	resp := doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: "nobody-gin-boilerplate@test.com", Password: unifiedPassword}, "")
 	require.Equal(t, http.StatusNotAcceptable, resp.Code)
 	require.Greater(t, models.DummyHashComparisons(), before, "the unknown-email path must run the dummy bcrypt (timing equalization)")
 
@@ -194,12 +199,12 @@ func TestUnifiedLoginUnknownEmail(t *testing.T) {
 * Must return response code 403
  */
 func TestUnifiedLoginSuspendedTenant(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
 	_, err := pgdb.AdminStore().Pool.Exec(context.Background(), "UPDATE tenant SET status=0 WHERE id=$1", unifiedTenantID)
 	require.NoError(t, err)
 
-	resp := doRequest(testRouter, "POST", "/v1/login", forms.LoginForm{Email: unifiedEmail, Password: unifiedPassword}, "")
+	resp := doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: unifiedEmail, Password: unifiedPassword}, "")
 	require.Equal(t, http.StatusForbidden, resp.Code)
 
 	_, err = pgdb.AdminStore().Pool.Exec(context.Background(), "UPDATE tenant SET status=1 WHERE id=$1", unifiedTenantID)
@@ -208,14 +213,14 @@ func TestUnifiedLoginSuspendedTenant(t *testing.T) {
 
 /**
 * TestUnifiedLoginValidation
-* The unified endpoint binds forms.LoginForm and translates its messages.
+* The unified endpoint binds user.LoginForm and translates its messages.
 *
 * Must return response code 406
  */
 func TestUnifiedLoginValidation(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
-	resp := doRequest(testRouter, "POST", "/v1/login", forms.LoginForm{Email: "invalid@email", Password: unifiedPassword}, "")
+	resp := doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: "invalid@email", Password: unifiedPassword}, "")
 	require.Equal(t, http.StatusNotAcceptable, resp.Code)
 
 	var res struct {
@@ -232,16 +237,16 @@ func TestUnifiedLoginValidation(t *testing.T) {
 * Must return response code 200
  */
 func TestUnifiedLoginLegacyEndpoints(t *testing.T) {
-	testRouter := SetupRouter()
+	testRouter := testRouter()
 
-	resp := doRequest(testRouter, "POST", "/v1/user/login", forms.LoginForm{Email: unifiedEmail, Password: unifiedPassword}, "")
+	resp := doRequest(testRouter, "POST", "/v1/user/login", user.LoginForm{Email: unifiedEmail, Password: unifiedPassword}, "")
 	require.Equal(t, http.StatusOK, resp.Code)
 	// The legacy tenant endpoint keeps its access/refresh pair.
 	userToken := tokenPayload(t, resp)
 	require.Contains(t, userToken, "access_token")
 	require.Contains(t, userToken, "refresh_token")
 
-	resp = doRequest(testRouter, "POST", "/v1/admin/login", forms.LoginForm{Email: unifiedAdminEmail, Password: unifiedAdminPassword}, "")
+	resp = doRequest(testRouter, "POST", "/v1/admin/login", user.LoginForm{Email: unifiedAdminEmail, Password: unifiedAdminPassword}, "")
 	require.Equal(t, http.StatusOK, resp.Code)
 	// The legacy admin endpoint keeps its access-token-only payload.
 	adminToken := tokenPayload(t, resp)
@@ -266,16 +271,16 @@ func TestUnifiedLoginCleanUp(t *testing.T) {
 
 	// Flush this suite's tenant/admin session keys (the article suite already
 	// cleaned its own keys in TestCleanUp).
-	if indexKeys, err := db.GetRedis().Keys("user_sessions:*").Result(); err == nil {
+	if indexKeys, err := redisdb.GetRedis().Keys("user_sessions:*").Result(); err == nil {
 		for _, indexKey := range indexKeys {
-			if members, err := db.GetRedis().SMembers(indexKey).Result(); err == nil && len(members) > 0 {
-				db.GetRedis().Del(members...)
+			if members, err := redisdb.GetRedis().SMembers(indexKey).Result(); err == nil && len(members) > 0 {
+				redisdb.GetRedis().Del(members...)
 			}
-			db.GetRedis().Del(indexKey)
+			redisdb.GetRedis().Del(indexKey)
 		}
 	}
-	if keys, err := db.GetRedis().Keys("admin:*").Result(); err == nil && len(keys) > 0 {
-		db.GetRedis().Del(keys...)
+	if keys, err := redisdb.GetRedis().Keys("admin:*").Result(); err == nil && len(keys) > 0 {
+		redisdb.GetRedis().Del(keys...)
 	}
 }
 

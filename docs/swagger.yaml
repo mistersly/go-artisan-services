@@ -1,13 +1,59 @@
 basePath: /v1
 definitions:
-  forms.ArticleResponse:
+  admin.AdminIdentity:
     properties:
+      email:
+        type: string
       id:
-        type: integer
-      message:
+        type: string
+      name:
         type: string
     type: object
-  forms.CreateArticleForm:
+  admin.LoginForm:
+    properties:
+      email:
+        type: string
+      password:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  admin.TenantStatusForm:
+    properties:
+      status:
+        enum:
+        - 0
+        - 1
+        type: integer
+    required:
+    - status
+    type: object
+  article.AllArticleResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/article.Result'
+        type: array
+    type: object
+  article.ArticleResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: integer
+      id:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: integer
+      user:
+        $ref: '#/definitions/article.UserResponse'
+    type: object
+  article.CreateArticleForm:
     properties:
       content:
         maxLength: 1000
@@ -21,7 +67,105 @@ definitions:
     - content
     - title
     type: object
-  forms.LoginForm:
+  article.Meta:
+    properties:
+      total:
+        type: integer
+    type: object
+  article.OneArticleResponse:
+    properties:
+      data:
+        $ref: '#/definitions/article.ArticleResponse'
+    type: object
+  article.Result:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/article.ArticleResponse'
+        type: array
+      meta:
+        $ref: '#/definitions/article.Meta'
+    type: object
+  article.UserResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  auth.AdminToken:
+    properties:
+      access_token:
+        type: string
+    type: object
+  auth.AuthResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  auth.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  forms.Token:
+    properties:
+      refresh_token:
+        type: string
+    required:
+    - refresh_token
+    type: object
+  models.LoginKind:
+    enum:
+    - tenant_user
+    - superadmin
+    type: string
+    x-enum-varnames:
+    - LoginKindTenantUser
+    - LoginKindSuperadmin
+  models.MessageResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  models.UnifiedLoginResponse:
+    properties:
+      admin:
+        $ref: '#/definitions/admin.AdminIdentity'
+      kind:
+        $ref: '#/definitions/models.LoginKind'
+      tenant:
+        $ref: '#/definitions/user.TenantPayload'
+      token:
+        $ref: '#/definitions/auth.Token'
+      user:
+        $ref: '#/definitions/user.User'
+    type: object
+  tenant.AllTenantResponse:
+    properties:
+      tenants:
+        items:
+          $ref: '#/definitions/tenant.Tenant'
+        type: array
+    type: object
+  tenant.Tenant:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      status:
+        type: integer
+    type: object
+  user.LoginForm:
     properties:
       email:
         type: string
@@ -33,7 +177,7 @@ definitions:
     - email
     - password
     type: object
-  forms.RegisterForm:
+  user.RegisterForm:
     properties:
       company:
         maxLength: 60
@@ -55,112 +199,7 @@ definitions:
     - name
     - password
     type: object
-  forms.TenantStatusForm:
-    properties:
-      status:
-        enum:
-        - 0
-        - 1
-        type: integer
-    required:
-    - status
-    type: object
-  forms.Token:
-    properties:
-      refresh_token:
-        type: string
-    required:
-    - refresh_token
-    type: object
-  models.AdminIdentity:
-    properties:
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
-    type: object
-  models.AllArticleResponse:
-    properties:
-      results:
-        items:
-          $ref: '#/definitions/models.Result'
-        type: array
-    type: object
-  models.AllTenantResponse:
-    properties:
-      tenants:
-        items:
-          $ref: '#/definitions/models.Tenant'
-        type: array
-    type: object
-  models.ArticleResponse:
-    properties:
-      content:
-        type: string
-      created_at:
-        type: integer
-      id:
-        type: string
-      title:
-        type: string
-      updated_at:
-        type: integer
-      user:
-        $ref: '#/definitions/models.UserResponse'
-    type: object
-  models.AuthResponse:
-    properties:
-      access_token:
-        type: string
-      refresh_token:
-        type: string
-    type: object
-  models.LoginKind:
-    enum:
-    - tenant_user
-    - superadmin
-    type: string
-    x-enum-varnames:
-    - LoginKindTenantUser
-    - LoginKindSuperadmin
-  models.MessageResponse:
-    properties:
-      message:
-        type: string
-    type: object
-  models.Meta:
-    properties:
-      total:
-        type: integer
-    type: object
-  models.OneArticleResponse:
-    properties:
-      data:
-        $ref: '#/definitions/models.ArticleResponse'
-    type: object
-  models.Result:
-    properties:
-      data:
-        items:
-          $ref: '#/definitions/models.ArticleResponse'
-        type: array
-      meta:
-        $ref: '#/definitions/models.Meta'
-    type: object
-  models.Tenant:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      slug:
-        type: string
-      status:
-        type: integer
-    type: object
-  models.TenantPayload:
+  user.TenantPayload:
     properties:
       id:
         type: string
@@ -169,27 +208,7 @@ definitions:
       slug:
         type: string
     type: object
-  models.Token:
-    properties:
-      access_token:
-        type: string
-      refresh_token:
-        type: string
-    type: object
-  models.UnifiedLoginResponse:
-    properties:
-      admin:
-        $ref: '#/definitions/models.AdminIdentity'
-      kind:
-        $ref: '#/definitions/models.LoginKind'
-      tenant:
-        $ref: '#/definitions/models.TenantPayload'
-      token:
-        $ref: '#/definitions/models.Token'
-      user:
-        $ref: '#/definitions/models.User'
-    type: object
-  models.User:
+  user.User:
     properties:
       email:
         type: string
@@ -202,25 +221,16 @@ definitions:
       tenant_id:
         type: string
     type: object
-  models.UserLoginResponse:
+  user.UserLoginResponse:
     properties:
       message:
         type: string
       tenant:
-        $ref: '#/definitions/models.TenantPayload'
+        $ref: '#/definitions/user.TenantPayload'
       token:
-        $ref: '#/definitions/models.Token'
+        $ref: '#/definitions/auth.Token'
       user:
-        $ref: '#/definitions/models.User'
-    type: object
-  models.UserResponse:
-    properties:
-      email:
-        type: string
-      id:
-        type: string
-      name:
-        type: string
+        $ref: '#/definitions/user.User'
     type: object
 externalDocs:
   description: OpenAPI
@@ -251,14 +261,14 @@ paths:
         name: auth
         required: true
         schema:
-          $ref: '#/definitions/forms.LoginForm'
+          $ref: '#/definitions/admin.LoginForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.AuthResponse'
+            $ref: '#/definitions/auth.AdminToken'
         "406":
           description: Not Acceptable
           schema:
@@ -290,7 +300,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.AllTenantResponse'
+            $ref: '#/definitions/tenant.AllTenantResponse'
         "406":
           description: Not Acceptable
           schema:
@@ -309,7 +319,7 @@ paths:
         name: status
         required: true
         schema:
-          $ref: '#/definitions/forms.TenantStatusForm'
+          $ref: '#/definitions/admin.TenantStatusForm'
       produces:
       - application/json
       responses:
@@ -335,18 +345,18 @@ paths:
         name: article
         required: true
         schema:
-          $ref: '#/definitions/forms.CreateArticleForm'
+          $ref: '#/definitions/article.CreateArticleForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/forms.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/forms.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
       summary: Create Article example
       tags:
       - Article
@@ -361,15 +371,15 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.OneArticleResponse'
+            $ref: '#/definitions/article.OneArticleResponse'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/forms.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/forms.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
       summary: Delete Article example
       tags:
       - Article
@@ -383,11 +393,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.OneArticleResponse'
+            $ref: '#/definitions/article.OneArticleResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/forms.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
       summary: Get One Article example
       tags:
       - Article
@@ -401,18 +411,18 @@ paths:
         name: article
         required: true
         schema:
-          $ref: '#/definitions/forms.CreateArticleForm'
+          $ref: '#/definitions/article.CreateArticleForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/forms.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
       summary: Update Article example
       tags:
       - Article
@@ -427,11 +437,11 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.AllArticleResponse'
+            $ref: '#/definitions/article.AllArticleResponse'
         "406":
           description: Not Acceptable
           schema:
-            $ref: '#/definitions/forms.ArticleResponse'
+            $ref: '#/definitions/article.ArticleResponse'
       summary: Get All Articles example
       tags:
       - Article
@@ -448,7 +458,7 @@ paths:
         name: auth
         required: true
         schema:
-          $ref: '#/definitions/forms.LoginForm'
+          $ref: '#/definitions/user.LoginForm'
       produces:
       - application/json
       responses:
@@ -485,7 +495,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.AuthResponse'
+            $ref: '#/definitions/auth.AuthResponse'
         "406":
           description: Not Acceptable
           schema:
@@ -504,14 +514,14 @@ paths:
         name: article
         required: true
         schema:
-          $ref: '#/definitions/forms.LoginForm'
+          $ref: '#/definitions/user.LoginForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UserLoginResponse'
+            $ref: '#/definitions/user.UserLoginResponse'
         "406":
           description: Not Acceptable
           schema:
@@ -549,14 +559,14 @@ paths:
         name: article
         required: true
         schema:
-          $ref: '#/definitions/forms.RegisterForm'
+          $ref: '#/definitions/user.RegisterForm'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.UserLoginResponse'
+            $ref: '#/definitions/user.UserLoginResponse'
         "406":
           description: Not Acceptable
           schema:
