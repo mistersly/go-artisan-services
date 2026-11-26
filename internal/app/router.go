@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/Massad/gin-boilerplate/controllers"
 	_ "github.com/Massad/gin-boilerplate/docs"
 	"github.com/Massad/gin-boilerplate/internal/modules/admin"
 	"github.com/Massad/gin-boilerplate/internal/modules/article"
@@ -35,6 +34,18 @@ type Deps struct {
 	Env          string
 	Secrets      auth.Secrets
 }
+
+// Compile-time proofs of the certified port wiring: the user and admin
+// services implement the auth module ports the orchestrator drives, and the
+// auth service implements the token-service ports the user and admin modules
+// declared (the latter are also asserted inside their own modules).
+var (
+	_ auth.UserAuthenticator  = (*user.Service)(nil)
+	_ auth.UserReader         = (*user.Service)(nil)
+	_ auth.AdminAuthenticator = (*admin.Service)(nil)
+	_ user.TokenService       = (*auth.Service)(nil)
+	_ admin.TokenService      = (*auth.Service)(nil)
+)
 
 // spaIndexPath is the built SPA shell served single-origin by this binary.
 const spaIndexPath = "./app/dist/index.html"
@@ -73,7 +84,6 @@ func NewRouter(deps Deps) *gin.Engine {
 		// the platform singleton here for the transitory window (dette tracée
 		// pour post-Phase 8 : singletons prohibés hors composition root).
 		authSvc := auth.NewService(deps.Secrets, auth.NewRepository(redisdb.GetRedis()))
-		authHandler := auth.NewHandler(authSvc)
 		authSvc.StartSweep(auth.DefaultSweepInterval)
 
 		/*** START USER ***/
@@ -85,18 +95,22 @@ func NewRouter(deps Deps) *gin.Engine {
 		users := user.NewService(user.NewRepository(pgdb.AdminStore(), pgdb.TenantStore()), tenants, authSvc, pgdb.AdminStore())
 		userHandler := user.NewHandler(users)
 
-		v1.POST("/user/login", userHandler.Login)
-		v1.POST("/user/register", userHandler.Register)
-		v1.GET("/user/logout", auth.TokenAuth(authSvc), authHandler.UserLogout)
-
 		/*** START ADMIN ***/
 		// Composition root of the admin module: the platform store is
 		// resolved here for the transitory window (dette tracée pour
-		// post-Phase 8 : singletons prohibés hors composition root). The
-		// section sits before the unified-auth block because the unified
-		// login consumes the admin service in its superadmin fallback.
+		// post-Phase 8 : singletons prohibés hors composition root).
 		admins := admin.NewService(admin.NewRepository(pgdb.AdminStore()), tenants, authSvc, pgdb.AdminStore())
 		adminHandler := admin.NewHandler(admins, authSvc)
+
+		/*** START AUTH ***/
+		// The unified login and the refresh sit on the module ports: the
+		// orchestrator is the auth-only consumer, built after the user and
+		// admin services (they consume the token service first — DI cycle).
+		authHandler := auth.NewHandler(authSvc, auth.NewOrchestrator(authSvc, users, admins, users))
+
+		v1.POST("/user/login", userHandler.Login)
+		v1.POST("/user/register", userHandler.Register)
+		v1.GET("/user/logout", auth.TokenAuth(authSvc), authHandler.UserLogout)
 
 		v1.POST("/admin/login", adminHandler.Login)
 		adminAPI := v1.Group("/admin", auth.AdminAuth(authSvc))
@@ -106,11 +120,8 @@ func NewRouter(deps Deps) *gin.Engine {
 			adminAPI.POST("/tenants/:id/status", adminHandler.SetTenantStatus)
 		}
 
-		/*** START AUTH ***/
-		authController := controllers.NewAuthController(authSvc, users, admins)
-
-		v1.POST("/login", authController.Login)
-		v1.POST("/token/refresh", authController.Refresh)
+		v1.POST("/login", authHandler.Login)
+		v1.POST("/token/refresh", authHandler.Refresh)
 
 		/*** START Article ***/
 		articles := article.NewService(article.NewRepository(pgdb.TenantStore()))

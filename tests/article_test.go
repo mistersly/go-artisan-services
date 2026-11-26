@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Massad/gin-boilerplate/forms"
 	"github.com/Massad/gin-boilerplate/internal/app"
 	"github.com/Massad/gin-boilerplate/internal/modules/article"
 	auth "github.com/Massad/gin-boilerplate/internal/modules/auth"
@@ -646,7 +645,7 @@ func TestOneOwnerConstraint(t *testing.T) {
 func TestRefreshToken(t *testing.T) {
 	testRouter := testRouter()
 
-	tokenForm := forms.Token{RefreshToken: refreshToken}
+	tokenForm := auth.RefreshForm{RefreshToken: refreshToken}
 
 	resp := doRequest(testRouter, "POST", "/v1/token/refresh", tokenForm, "")
 
@@ -674,7 +673,7 @@ func TestInvalidRefreshToken(t *testing.T) {
 	testRouter := testRouter()
 
 	//Since we didn't update it in the test before - this will not be valid anymore
-	tokenForm := forms.Token{RefreshToken: refreshToken}
+	tokenForm := auth.RefreshForm{RefreshToken: refreshToken}
 
 	resp := doRequest(testRouter, "POST", "/v1/token/refresh", tokenForm, "")
 	require.Equal(t, http.StatusUnauthorized, resp.Code)
@@ -824,7 +823,7 @@ func TestSuspendedTenantLogin(t *testing.T) {
 func TestSuspendedTenantRefresh(t *testing.T) {
 	testRouter := testRouter()
 
-	tokenForm := forms.Token{RefreshToken: refreshTokenB}
+	tokenForm := auth.RefreshForm{RefreshToken: refreshTokenB}
 	resp := doRequest(testRouter, "POST", "/v1/token/refresh", tokenForm, "")
 	require.Equal(t, http.StatusUnauthorized, resp.Code)
 }

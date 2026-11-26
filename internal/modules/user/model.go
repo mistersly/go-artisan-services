@@ -2,7 +2,6 @@ package user
 
 import (
 	auth "github.com/Massad/gin-boilerplate/internal/modules/auth"
-	"github.com/google/uuid"
 )
 
 // UserLoginResponse ...
@@ -13,32 +12,20 @@ type UserLoginResponse struct {
 	Message string        `json:"message"`
 }
 
-// TenantPayload is the tenant subset embedded in user auth responses. The
-// payload shape is carried by each consumer (design Phase 5): the port
-// UserAuthenticator defines its own in the auth module; no cross-module type
-// import.
-type TenantPayload struct {
-	ID   string `json:"id"`
-	Slug string `json:"slug"`
-	Name string `json:"name"`
-}
+// The certified names below are aliases of the auth module's port structs
+// (plan Phase 5: the ports UserAuthenticator/UserReader own their payload
+// structs, the modules keep their names — the user→auth type direction is the
+// one the TokenService port already certified; auth never imports user).
 
-// User ...
-type User struct {
-	ID    uuid.UUID `json:"id"`
-	Email string    `json:"email"`
-	// Password is the bcrypt hash; never serialized to clients.
-	Password string    `json:"-"`
-	Name     string    `json:"name"`
-	TenantID uuid.UUID `json:"tenant_id"`
-	Role     string    `json:"role"`
-}
+// TenantPayload is the tenant subset embedded in user auth responses: the
+// auth port owns the struct, the module keeps the certified name.
+type TenantPayload = auth.TenantPayload
+
+// User is the stored user identity: the auth port owns the struct, the
+// module keeps the certified name.
+type User = auth.User
 
 // UserWithTenantStatus bundles the refresh-time re-read of a user with the
-// freshness data the refresh flow needs.
-type UserWithTenantStatus struct {
-	User       User
-	Tenant     TenantPayload
-	TenantSlug string
-	Status     int16
-}
+// freshness data the refresh flow needs: the auth port owns the struct, the
+// module keeps the certified name.
+type UserWithTenantStatus = auth.UserWithTenantStatus

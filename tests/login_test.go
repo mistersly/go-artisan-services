@@ -21,7 +21,6 @@ import (
 	pgdb "github.com/Massad/gin-boilerplate/internal/platform/db"
 	"github.com/Massad/gin-boilerplate/internal/platform/redisdb"
 	testutil "github.com/Massad/gin-boilerplate/internal/testutil"
-	"github.com/Massad/gin-boilerplate/models"
 )
 
 // State shared by the unified-login suite (populated by the tests below, in
@@ -180,10 +179,10 @@ func TestUnifiedLoginWrongPassword(t *testing.T) {
 func TestUnifiedLoginUnknownEmail(t *testing.T) {
 	testRouter := testRouter()
 
-	before := models.DummyHashComparisons()
+	before := auth.DummyHashComparisons()
 	resp := doRequest(testRouter, "POST", "/v1/login", user.LoginForm{Email: "nobody-gin-boilerplate@test.com", Password: unifiedPassword}, "")
 	require.Equal(t, http.StatusNotAcceptable, resp.Code)
-	require.Greater(t, models.DummyHashComparisons(), before, "the unknown-email path must run the dummy bcrypt (timing equalization)")
+	require.Greater(t, auth.DummyHashComparisons(), before, "the unknown-email path must run the dummy bcrypt (timing equalization)")
 
 	var res struct {
 		Message string `json:"message"`

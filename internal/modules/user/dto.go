@@ -1,14 +1,13 @@
 package user
 
 import (
+	auth "github.com/Massad/gin-boilerplate/internal/modules/auth"
 	validate "github.com/Massad/gin-boilerplate/internal/platform/validate"
 )
 
-// LoginForm ...
-type LoginForm struct {
-	Email    string `form:"email" json:"email" binding:"required,email"`
-	Password string `form:"password" json:"password" binding:"required,min=3,max=50"`
-}
+// LoginForm is the unified login form: the auth port owns the struct, the
+// module keeps the certified name for its own login route.
+type LoginForm = auth.LoginForm
 
 // RegisterForm ...
 type RegisterForm struct {

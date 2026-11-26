@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Massad/gin-boilerplate/controllers"
 	"github.com/Massad/gin-boilerplate/internal/modules/admin"
 	auth "github.com/Massad/gin-boilerplate/internal/modules/auth"
 	"github.com/Massad/gin-boilerplate/internal/modules/tenant"
@@ -78,9 +77,8 @@ func TestRefreshOnlyConsumesMatchingOwner(t *testing.T) {
 	require.NoError(t, err)
 
 	// The refresh route wires the user and admin module services exactly
-	// like the composition root does: the flow re-reads the user through
-	// OneWithTenant and runs the unified login superadmin fallback through
-	// the admin service.
+	// like the composition root does: the orchestrator consumes the ports
+	// (the user service implements the user ones) and the same auth service.
 	users := user.NewService(
 		user.NewRepository(pgdb.AdminStore(), pgdb.TenantStore()),
 		tenant.NewRepository(pgdb.AdminStore()),
@@ -89,7 +87,7 @@ func TestRefreshOnlyConsumesMatchingOwner(t *testing.T) {
 	)
 	admins := admin.NewService(admin.NewRepository(pgdb.AdminStore()), tenant.NewRepository(pgdb.AdminStore()), svc, pgdb.AdminStore())
 	r := gin.New()
-	r.POST("/refresh", controllers.NewAuthController(svc, users, admins).Refresh)
+	r.POST("/refresh", auth.NewHandler(svc, auth.NewOrchestrator(svc, users, admins, users)).Refresh)
 
 	// seedRefresh inserts the redis value and signs a refresh token claiming
 	// the given owner.
