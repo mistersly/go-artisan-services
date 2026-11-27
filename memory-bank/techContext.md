@@ -1,6 +1,6 @@
 # techContext.md — go-artisan-services
 
-## Stack (go.mod, Go 1.26.10)
+## Stack (go.mod, Go 1.26.11)
 
 - Gin v1.12.0 + gzip ; PostgreSQL via **pgx/v5 v5.13.0** (pgxpool natif, `sql_package: pgx/v5`) ; requêtes compilées par **sqlc v1.27.0** ; migrations **goose v3.20.0** ; Redis client v7.4.1 ; JWT v4.5.2 ; bcrypt `golang.org/x/crypto` ; swag v1.16.6 ; maroto v2 (PDF) ; testify.
 - Outils CLI épinglés dans le Makefile (`install_sqlc`, `install_goose`, `install_swag` → `.cache/tools/`, gitignored, retéléchargés au premier make après nettoyage).

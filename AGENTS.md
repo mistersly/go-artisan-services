@@ -1,6 +1,6 @@
 # AGENTS.md — go-artisan-services
 
-API REST Go (Gin) avec PostgreSQL (pgx/v5 via pgxpool + requêtes sqlc, migrations goose), Redis (tokens JWT), Swagger et génération de PDF (maroto). Multi-tenant : schéma partagé + `tenant_id` + Row-Level Security échec fermé. Module : `github.com/Massad/gin-boilerplate`, Go 1.26.10.
+API REST Go (Gin) avec PostgreSQL (pgx/v5 via pgxpool + requêtes sqlc, migrations goose), Redis (tokens JWT), Swagger et génération de PDF (maroto). Multi-tenant : schéma partagé + `tenant_id` + Row-Level Security échec fermé. Module : `github.com/Massad/gin-boilerplate`, Go 1.26.11.
 
 ## Commandes
 
