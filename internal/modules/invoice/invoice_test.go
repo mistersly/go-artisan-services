@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Massad/gin-boilerplate/invoice"
+	"github.com/Massad/gin-boilerplate/internal/modules/invoice"
 )
 
 // Use an independent PDF reader: searching the raw bytes would miss compressed
