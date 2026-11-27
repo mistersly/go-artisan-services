@@ -18,10 +18,8 @@ import (
 	pgdb "github.com/Massad/gin-boilerplate/internal/platform/db"
 	platformmw "github.com/Massad/gin-boilerplate/internal/platform/middleware"
 	redisdb "github.com/Massad/gin-boilerplate/internal/platform/redisdb"
-	validate "github.com/Massad/gin-boilerplate/internal/platform/validate"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -65,13 +63,11 @@ func serveSPAIndex(c *gin.Context) {
 }
 
 // NewRouter builds the production engine. The wiring is copied verbatim from
-// the former main.go blocks: gin.Default, trusted proxies, the global form
-// validator, CORS/RequestID/gzip, the /v1 surface, Swagger and the SPA host.
+// the former main.go blocks: gin.Default, trusted proxies, CORS/RequestID/gzip,
+// the /v1 surface, Swagger and the SPA host.
 func NewRouter(deps Deps) *gin.Engine {
 	r := gin.Default()
 	r.SetTrustedProxies(nil)
-
-	binding.Validator = new(validate.DefaultValidator)
 
 	r.Use(platformmw.CORS())
 	r.Use(platformmw.RequestID())

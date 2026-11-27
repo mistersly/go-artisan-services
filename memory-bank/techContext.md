@@ -2,7 +2,7 @@
 
 ## Stack (go.mod, Go 1.26.11)
 
-- Gin v1.12.0 + gzip ; PostgreSQL via **pgx/v5 v5.13.0** (pgxpool natif, `sql_package: pgx/v5`) ; requêtes compilées par **sqlc v1.27.0** ; migrations **goose v3.20.0** ; Redis client v7.4.1 ; JWT v4.5.2 ; bcrypt `golang.org/x/crypto` ; swag v1.16.6 ; maroto v2 (PDF) ; testify.
+- Gin v1.12.0 + gzip ; PostgreSQL via **pgx/v5 v5.13.0** (pgxpool natif, `sql_package: pgx/v5`) ; requêtes compilées par **sqlc v1.30.0** ; migrations **goose v3.20.0** ; Redis client v7.4.1 ; JWT v4.5.2 ; bcrypt `golang.org/x/crypto` ; swag v1.16.6 ; maroto v2 (PDF) ; testify.
 - Outils CLI épinglés dans le Makefile (`install_sqlc`, `install_goose`, `install_swag` → `.cache/tools/`, gitignored, retéléchargés au premier make après nettoyage).
 
 ## Stack frontend (app/)
@@ -26,14 +26,14 @@
 ```bash
 make run | make test                 # test = -tags=all ./... (PG+Redis requis ; la cible source .env elle-même)
 make migrate_up                      # superuser la 1re fois (crée les rôles) : make migrate_up DB_USER=postgres DB_PASS=...
-make generate_sqlc                   # après TOUTE modif de db/queries/ ou db/migrations/ — commit du généré (CI: git diff --exit-code internal/db)
+make generate_sqlc                   # après TOUTE modif de db/queries/ ou db/migrations/ — commit du généré (CI: git diff --exit-code internal/platform/db)
 make generate_docs                   # après toute annotation Swagger
-go build -mod=readonly . && go vet -mod=readonly ./...
-go test -mod=readonly -count=1 -race -tags=all . ./config ./models ./controllers ./middleware ./internal/db ./tests
+go build -mod=readonly ./cmd/api && go vet -mod=readonly ./...
+go test -mod=readonly -count=1 -p 1 -race -tags=all ./...
 ```
 
-- Garde-fous CI : `! grep` sur les imports legacy quotés (`sqlx`/`lib/pq`), diff du code sqlc généré, smoke test des routes, `govulncheck`.
-- `./invoice` (test PDF) exige un poppler réel : Windows natif OK (winget `oschwartz10612.Poppler` ; la cible `test` masque le pdftotext xpdf embarqué de Git for Windows) ; en WSL il faut installer `poppler-utils`.
+- Garde-fous CI : `! grep` sur les imports legacy quotés (`sqlx`/`lib/pq`) ET sur les paquets racine supprimés (`controllers`/`models`/`forms`/`middleware`), diff du code sqlc généré, smoke test des routes, `govulncheck`.
+- `internal/modules/invoice` (test PDF) exige un poppler réel : Windows natif OK (winget `oschwartz10612.Poppler` ; la cible `test` masque le pdftotext xpdf embarqué de Git for Windows) ; en WSL il faut installer `poppler-utils`.
 
 ## Environnement local (WSL Debian)
 
