@@ -145,7 +145,7 @@ line items, and totals — install a real poppler first:
 Then run without database services:
 
 ```bash
-go test -mod=readonly -count=1 -race -v ./invoice
+go test -mod=readonly -count=1 -race -v ./internal/modules/invoice
 ```
 
 The full integration suite also requires running PostgreSQL and Redis.
@@ -307,7 +307,7 @@ By default, `SetTrustedProxies(nil)` is configured — Gin will not trust any pr
 r.SetTrustedProxies([]string{"192.168.1.0/24", "10.0.0.0/8"})
 ```
 
-CORS is configured in `middleware/cors.go`. Update the `Access-Control-Allow-Origin` header for your domain in production.
+CORS is configured in `internal/platform/middleware/cors.go`. Update the `Access-Control-Allow-Origin` header for your domain in production.
 
 ## Authentication
 
@@ -343,29 +343,29 @@ are exercised for real.
 ## Project Structure
 
 ```
-controllers/    HTTP handlers
-models/         Database structs and business services (sqlc-generated queries)
-forms/          Request validation structs and reusable error translation
-middleware/     CORS, RequestID, JWT auth (tenant + admin), RBAC helper
-internal/db/    sqlc-generated code + pgxpool bootstrap (tenant & admin pools)
-db/queries/     SQL sources for sqlc — all application queries live here
-db/migrations/  Versioned goose migrations
-db/             Redis initialization
-config/         Signing secrets validation
-invoice/        HTML/PDF invoice generation library (no routes)
-docs/           Swagger documentation (auto-generated)
-public/         Static files and HTML templates
-tests/          Integration tests
-app/            Frontend workspace (Vite + React 19, Storybook)
+cmd/api/                      Entrypoint: env, flags, secrets, binding validator pin, pools + Redis, router assembly
+internal/app/                 Composition root: middleware chain, /v1 routes, Swagger, SPA host
+internal/modules/article/     Article module (handler, service, repository, dto, model)
+internal/modules/auth/        Sessions, JWT, unified login, refresh, TokenAuth/AdminAuth/RequirePermission
+internal/modules/user/        Identity: register (tenant + owner in one tx), login
+internal/modules/tenant/      Tenant slug validation + provisioning + backoffice reads
+internal/modules/admin/       Platform backoffice: admin login, tenant status, audit
+internal/modules/invoice/     PDF invoice generation library (no HTTP routes, no DB)
+internal/platform/            db (sqlc-generated + pgx pools, RLS WithTenant, WithinTx), redis, config, httpx, validate, mocks
+db/queries/                   SQL sources for sqlc — all application queries live here
+db/migrations/                Versioned goose migrations
+docs/                         Swagger documentation (auto-generated)
+public/                       Static files and HTML templates
+tests/                        Integration tests (build tag all, disposable artisan_test database)
+app/                          Frontend workspace (Vite + React 19, Storybook)
 ```
 
 ## Adding a New Resource
 
-1. Write the SQL queries in `db/queries/*.sql` and run `make generate_sqlc` (commit the regenerated `internal/db/` code)
-2. Add a model in `models/` calling the generated queries through the tenant or admin store
-3. Create form structs in `forms/` with binding tags and a `ValidationMessages` map
-4. Create a controller in `controllers/` — use `forms.Translate(err, messages)` for validation errors
-5. Register routes in `main.go` and run `make generate_docs` to update Swagger
+1. Write the SQL queries in `db/queries/*.sql` and run `make generate_sqlc` (commit the regenerated `internal/platform/db/` code)
+2. Create the module in `internal/modules/<domain>/` — `model.go`, `dto.go` (form structs with `binding:` tags + the `ValidationMessages` map), `service.go` (business rules + consumer ports), `repository.go` (sqlc queries via the tenant or admin store)
+3. Create the handler in the module — use `validate.Translate(err, messages)` for validation errors
+4. Register routes in `internal/app/router.go` (the composition root) and run `make generate_docs` to update Swagger
 
 ## Previous Versions
 
