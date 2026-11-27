@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Console Atrium — Écrans</title>
+<style>
+:root {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-warm: var(--surface);
+  --fg: #111827;
+  --fg-2: var(--fg);
+  --muted: #64748b;
+  --meta: var(--muted);
+  --border: #e5e7eb;
+  --border-soft: var(--border);
+  --accent: #000000;
+  --accent-on: #ffffff;
+  --accent-hover: color-mix(in oklab, var(--accent), white 10%);
+  --accent-active: color-mix(in oklab, var(--accent), white 18%);
+  --success: #16a34a;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --font-display: "Geist", "Geist Sans", -apple-system, system-ui, "Segoe UI", Arial, sans-serif;
+  --font-body: "Geist", "Geist Sans", -apple-system, system-ui, "Segoe UI", Arial, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 32px;
+  --leading-body: 1.5;
+  --leading-tight: 1.2;
+  --tracking-display: -0.02em;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+  --elev-flat: none;
+  --elev-ring: 0 0 0 1px var(--border);
+  --elev-raised:
+    0 1px 2px 0 color-mix(in oklab, var(--fg), transparent 92%),
+    0 1px 3px 0 color-mix(in oklab, var(--fg), transparent 88%);
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --container-max: 1280px;
+  --container-gutter-desktop: 24px;
+  --container-gutter-tablet: 16px;
+  --container-gutter-phone: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+body {
+  min-height: 100vh; background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-body);
+  -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+.wrap { max-width: 880px; margin: 0 auto; padding: var(--space-12) var(--container-gutter-desktop) var(--space-12); }
+.brand { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-8); }
+.brand .logo-dot { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--fg); display: grid; place-items: center; }
+.brand .logo-dot::after { content: ""; width: 13px; height: 13px; border-radius: 3px; background: var(--bg); }
+.brand .brand-name { font-family: var(--font-display); font-weight: 600; font-size: var(--text-base); }
+.brand .brand-tag { margin-left: auto; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 2px 8px; }
+.eyebrow { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: var(--space-3); }
+.head h1 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-2xl); line-height: var(--leading-tight); letter-spacing: var(--tracking-display); margin-bottom: var(--space-3); }
+.head p { color: var(--muted); max-width: 58ch; margin-bottom: var(--space-8); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(268px, 1fr)); gap: var(--space-4); }
+.screen {
+  display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: var(--radius-md);
+  background: var(--surface); padding: var(--space-5); min-height: 208px;
+  transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard),
+              transform var(--motion-fast) var(--ease-standard);
+}
+.screen:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 28%); box-shadow: var(--elev-raised); transform: translateY(-2px); }
+.screen:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.screen .index { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); }
+.screen h2 { font-family: var(--font-display); font-weight: 600; font-size: var(--text-lg); letter-spacing: var(--tracking-display); margin: var(--space-3) 0 var(--space-2); }
+.screen p { font-size: var(--text-sm); color: var(--muted); flex: 1; }
+.screen .open { display: inline-flex; align-items: center; gap: var(--space-2); margin-top: var(--space-5); font-size: var(--text-sm); font-weight: 500; color: var(--fg); }
+.screen:hover .open { color: var(--accent); }
+.screen .open svg { width: 16px; height: 16px; transition: transform var(--motion-fast) var(--ease-standard); }
+.screen:hover .open svg { transform: translateX(3px); }
+.foot { margin-top: var(--space-8); padding-top: var(--space-4); border-top: 1px solid var(--border); font-size: var(--text-xs); color: var(--muted); display: flex; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; }
+.foot code { font-family: var(--font-mono); }
+@media (max-width: 680px) {
+  .grid { grid-template-columns: 1fr; }
+  .wrap { padding: var(--space-8) var(--container-gutter-phone) var(--space-12); }
+  .head h1 { font-size: var(--text-xl); }
+}
+</style>
+</head>
+<body data-od-root>
+<div class="wrap" data-od-id="launcher">
+  <div class="brand">
+    <span class="logo-dot" aria-hidden="true"></span>
+    <span class="brand-name">Atrium</span>
+    <span class="brand-tag">Console</span>
+  </div>
+
+  <header class="head">
+    <p class="eyebrow">Plateforme multi-tenant</p>
+    <h1>Écrans de la console Studio Nord</h1>
+    <p>Deux parcours de l'espace de travail — l'accès à une organisation et l'administration de ses membres — et la référence de design system qui les relie.</p>
+  </header>
+
+  <div class="grid">
+    <a class="screen" href="login.html" data-od-id="screen-login">
+      <span class="index">Écran 01</span>
+      <h2>Connexion</h2>
+      <p>Sélection de l'organisation, authentification par mot de passe ou SSO et création d'un nouvel espace.</p>
+      <span class="open">Ouvrir l'écran <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
+    <a class="screen" href="utilisateurs.html" data-od-id="screen-utilisateurs">
+      <span class="index">Écran 02</span>
+      <h2>Utilisateurs &amp; droits</h2>
+      <p>Tableau des membres, rôles attribués, permissions détaillées, invitations et actions groupées.</p>
+      <span class="open">Ouvrir l'écran <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
+    <a class="screen" href="design-system.html" data-od-id="screen-design-system">
+      <span class="index">Écran 03</span>
+      <h2>Design system</h2>
+      <p>Tokens, typographie, composants et règles d'usage : la référence partagée par les deux écrans.</p>
+      <span class="open">Ouvrir l'écran <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+    </a>
+  </div>
+
+  <footer class="foot">
+    <span>Tenant de démonstration : <code>studio-nord.atrium.app</code></span>
+    <span>Design system Shadcn — tokens <code>:root</code></span>
+  </footer>
+</div>
+</body>
+</html>

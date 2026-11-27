@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Design system — Console Atrium</title>
+<style>
+:root { --bg: #ffffff; --surface: #ffffff; --surface-warm: var(--surface); --fg: #111827; --fg-2: var(--fg); --muted: #64748b; --meta: var(--muted); --border: #e5e7eb; --border-soft: var(--border); --accent: #000000; --accent-on: #ffffff; --accent-hover: color-mix(in oklab, var(--accent), white 10%); --accent-active: color-mix(in oklab, var(--accent), white 18%); --success: #16a34a; --warn: #d97706; --danger: #dc2626; --font-display: "Geist", "Geist Sans", -apple-system, system-ui, "Segoe UI", Arial, sans-serif; --font-body: "Geist", "Geist Sans", -apple-system, system-ui, "Segoe UI", Arial, sans-serif; --font-mono: "Fira Code", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, monospace; --text-xs: 12px; --text-sm: 14px; --text-base: 16px; --text-lg: 20px; --text-xl: 24px; --text-2xl: 32px; --text-3xl: 40px; --text-4xl: 48px; --leading-body: 1.5; --leading-tight: 1.2; --tracking-display: -0.02em; --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-12: 48px; --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px; --radius-pill: 9999px; --elev-flat: none; --elev-ring: 0 0 0 1px var(--border); --elev-raised: 0 1px 2px 0 color-mix(in oklab, var(--fg), transparent 92%), 0 1px 3px 0 color-mix(in oklab, var(--fg), transparent 88%); --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); --motion-fast: 150ms; --motion-base: 200ms; --ease-standard: cubic-bezier(0.2, 0, 0, 1); --container-max: 1280px; --container-gutter-desktop: 24px; --container-gutter-tablet: 16px; --container-gutter-phone: 16px; }
+* { box-sizing: border-box; margin: 0; padding: 0; } [hidden] { display: none !important; } html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-body); -webkit-font-smoothing: antialiased; } a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; } ul, li { list-style: none; } h1, h2, h3, h4 { font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); } code { font-family: var(--font-mono); font-size: var(--text-xs); }
+kbd { font-family: var(--font-mono); font-size: var(--text-xs); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: var(--radius-sm); padding: 1px 6px; background: var(--surface); color: var(--fg); } svg { width: 18px; height: 18px; flex-shrink: 0; }
+/* ── Chrome ─────────────────────────────────────────────────────── */ .doc-top { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: var(--space-4); height: 60px; padding: 0 var(--space-6); background: var(--surface); border-bottom: 1px solid var(--border); }
+.brand { display: flex; align-items: center; gap: var(--space-3); } .logo-dot { width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--fg); display: grid; place-items: center; flex-shrink: 0; }
+.logo-dot::after { content: ""; width: 12px; height: 12px; border-radius: 3px; background: var(--bg); } .brand-name { font-family: var(--font-display); font-weight: 600; font-size: var(--text-base); }
+.brand-tag { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 2px 8px; }
+.doc-links { margin-left: auto; display: flex; align-items: center; gap: var(--space-4); font-size: var(--text-sm); color: var(--muted); } .doc-links a { transition: color var(--motion-fast) var(--ease-standard); } .doc-links a:hover { color: var(--fg); }
+.doc-layout { display: grid; grid-template-columns: 236px 1fr; max-width: var(--container-max); margin: 0 auto; } .doc-nav { position: sticky; top: 60px; align-self: start; height: calc(100vh - 60px); overflow-y: auto; padding: var(--space-6) var(--space-4); border-right: 1px solid var(--border); }
+.doc-nav .nav-label { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); margin-bottom: var(--space-3); }
+.doc-nav a { display: flex; align-items: baseline; gap: var(--space-2); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); font-size: var(--text-sm); color: var(--muted); transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.doc-nav a:hover { background: color-mix(in oklab, var(--fg), transparent 94%); color: var(--fg); } .doc-nav a[aria-current="true"] { background: color-mix(in oklab, var(--fg), transparent 90%); color: var(--fg); font-weight: 500; }
+.nav-num { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); } .doc-main { min-width: 0; padding: var(--space-8) var(--container-gutter-desktop) var(--space-12); } .doc-hero { padding-bottom: var(--space-8); }
+.eyebrow { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: var(--space-3); } .doc-hero h1 { font-size: var(--text-3xl); line-height: var(--leading-tight); margin-bottom: var(--space-3); }
+.doc-hero p { color: var(--muted); max-width: 62ch; } .hero-meta { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); margin-top: var(--space-5); font-size: var(--text-xs); color: var(--muted); } .hero-meta b { color: var(--fg); font-weight: 500; }
+.doc-section { padding: var(--space-8) 0 var(--space-12); border-top: 1px solid var(--border); } .section-head { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-2); } .section-num { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); }
+.doc-section h2 { font-size: var(--text-2xl); line-height: var(--leading-tight); } .lede { color: var(--muted); max-width: 62ch; margin-bottom: var(--space-6); }
+.sub-title { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); margin: var(--space-6) 0 var(--space-3); } .sub-title:first-of-type { margin-top: 0; }
+/* ── Spécimens ──────────────────────────────────────────────────── */ .spec { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); margin-bottom: var(--space-4); overflow: hidden; }
+.spec-head { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); background: color-mix(in oklab, var(--fg), transparent 96%); }
+.spec-head b { font-size: var(--text-xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; } .spec-head .spec-code { margin-left: auto; font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); min-width: 0; overflow-wrap: anywhere; }
+.spec-body { padding: var(--space-5); display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; } .spec-body.stack { display: block; } .spec-note { padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); font-size: var(--text-xs); color: var(--muted); }
+.spec-note b { color: var(--fg); font-weight: 500; } .spec-label { font-size: var(--text-xs); color: var(--muted); display: block; margin-bottom: var(--space-2); }
+/* ── Couleurs ───────────────────────────────────────────────────── */ .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: var(--space-4); }
+.swatch { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); overflow: hidden; } .swatch .chip { height: 68px; border-bottom: 1px solid var(--border); } .swatch .meta { padding: var(--space-3); display: flex; flex-direction: column; gap: 2px; }
+.swatch .tok { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg); } .swatch .role { font-size: var(--text-xs); color: var(--muted); }
+.swatch .copy { align-self: flex-start; margin-top: var(--space-1); background: none; border: none; padding: 2px 0; font-size: var(--text-xs); color: var(--muted); cursor: pointer; border-bottom: 1px solid var(--border); transition: color var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.swatch .copy:hover { color: var(--fg); border-color: var(--fg); }
+/* ── Typographie & espacements ──────────────────────────────────── */ .scale-row { display: grid; grid-template-columns: 132px 1fr; gap: var(--space-4); align-items: baseline; padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); } .scale-row:last-child { border-bottom: none; }
+.scale-code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); } .space-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-2) 0; }
+.space-code { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--muted); width: 132px; flex-shrink: 0; } .bar { height: 12px; background: var(--fg); border-radius: 2px; } .radius-row { display: flex; flex-wrap: wrap; gap: var(--space-6); } .radius-item { text-align: center; }
+.radius-item .shape { width: 64px; height: 64px; background: color-mix(in oklab, var(--fg), transparent 90%); border: 1px solid var(--border); margin-bottom: var(--space-2); } .radius-item code { color: var(--muted); }
+.elev-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-4); } .elev-item { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: var(--space-5) var(--space-4); text-align: center; }
+.elev-item code { color: var(--muted); display: block; margin-top: var(--space-2); }
+/* ── Boutons ────────────────────────────────────────────────────── */ .btn-primary, .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: 500; cursor: pointer; white-space: nowrap; transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.btn-primary { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-on); } .btn-primary:hover { background: var(--accent-hover); } .btn-primary:active { background: var(--accent-active); }
+.btn-secondary { border: 1px solid var(--border); background: var(--surface); color: var(--fg); } .btn-secondary:hover { background: color-mix(in oklab, var(--fg), transparent 96%); border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.btn-primary svg, .btn-secondary svg { width: 16px; height: 16px; } .btn-lg { padding: var(--space-3) var(--space-4); } .btn-block { width: 100%; } .btn-primary[disabled], .btn-secondary[disabled] { opacity: 0.5; cursor: not-allowed; }
+.spinner { display: none; width: 15px; height: 15px; border: 2px solid color-mix(in oklab, currentColor, transparent 70%); border-top-color: currentColor; border-radius: var(--radius-pill); animation: spin 0.7s linear infinite; } [aria-busy="true"] .spinner { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } } .focus-demo { box-shadow: var(--focus-ring); border-radius: var(--radius-sm); } /* ── Champs ─────────────────────────────────────────────────────── */ .field { margin-bottom: var(--space-4); }
+.field > label { display: block; font-size: var(--text-sm); font-weight: 500; margin-bottom: var(--space-2); } .input-wrap { position: relative; display: flex; align-items: center; }
+.input-wrap .input-icon { position: absolute; left: var(--space-3); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+.field input, .field select, .field textarea { width: 100%; padding: var(--space-3) var(--space-4); padding-left: calc(var(--space-3) * 2 + 18px); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-sm); color: var(--fg); transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.field select, .field input.no-icon { padding-left: var(--space-4); } .field textarea { resize: vertical; min-height: 84px; line-height: 1.5; } .field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+.field input:hover, .field textarea:hover, .field select:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); } .field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.field-help { margin-top: var(--space-2); font-size: var(--text-xs); color: var(--muted); } .field-error { display: none; margin-top: var(--space-2); font-size: var(--text-xs); color: var(--danger); } .field[data-invalid="true"] input { border-color: var(--danger); }
+.field[data-invalid="true"] .field-error { display: block; }
+.pwd-toggle { position: absolute; right: var(--space-2); display: grid; place-items: center; width: 32px; height: 32px; border: none; background: transparent; color: var(--muted); border-radius: var(--radius-sm); cursor: pointer; transition: color var(--motion-fast) var(--ease-standard), background var(--motion-fast) var(--ease-standard); }
+.pwd-toggle:hover { color: var(--fg); background: color-mix(in oklab, var(--fg), transparent 94%); } .pwd-toggle svg { width: 18px; height: 18px; }
+.checkbox { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--fg); cursor: pointer; user-select: none; }
+.checkbox input { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); display: grid; place-items: center; cursor: pointer; transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.checkbox input:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 30%); } .checkbox input:checked { background: var(--accent); border-color: var(--accent); }
+.checkbox input:checked::after { content: ""; width: 10px; height: 6px; border-left: 2px solid var(--accent-on); border-bottom: 2px solid var(--accent-on); transform: rotate(-45deg) translateY(-1px); }
+.divider { display: flex; align-items: center; gap: var(--space-4); margin: var(--space-6) 0; color: var(--muted); font-size: var(--text-xs); } .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.error-banner { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid color-mix(in oklab, var(--danger), white 70%); border-radius: var(--radius-sm); background: color-mix(in oklab, var(--danger), white 96%); color: color-mix(in oklab, var(--danger), var(--fg) 30%); font-size: var(--text-sm); }
+.error-banner svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+/* ── Badges ─────────────────────────────────────────────────────── */ .badge { display: inline-flex; align-items: center; gap: var(--space-2); padding: 2px var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-pill); background: color-mix(in oklab, var(--fg), transparent 95%); font-size: var(--text-xs); color: var(--fg); white-space: nowrap; }
+.badge[data-variant="solid"] { background: var(--fg); border-color: var(--fg); color: var(--accent-on); } .badge .dot { width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--muted); }
+.badge[data-status="active"] { color: color-mix(in oklab, var(--success), var(--fg) 32%); border-color: color-mix(in oklab, var(--success), white 70%); background: color-mix(in oklab, var(--success), white 95%); } .badge[data-status="active"] .dot { background: var(--success); }
+.badge[data-status="pending"] { color: color-mix(in oklab, var(--warn), var(--fg) 35%); border-color: color-mix(in oklab, var(--warn), white 70%); background: color-mix(in oklab, var(--warn), white 94%); } .badge[data-status="pending"] .dot { background: var(--warn); }
+.badge[data-status="suspended"] { color: color-mix(in oklab, var(--danger), var(--fg) 30%); border-color: color-mix(in oklab, var(--danger), white 72%); background: color-mix(in oklab, var(--danger), white 95%); } .badge[data-status="suspended"] .dot { background: var(--danger); }
+/* ── Navigation ─────────────────────────────────────────────────── */ .nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); color: var(--muted); font-size: var(--text-sm); transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; } .nav-item:hover { background: color-mix(in oklab, var(--fg), transparent 94%); color: var(--fg); } .nav-item[aria-current="page"] { background: color-mix(in oklab, var(--fg), transparent 90%); color: var(--fg); font-weight: 500; }
+.nav-item .count { margin-left: auto; font-size: var(--text-xs); color: var(--muted); background: color-mix(in oklab, var(--fg), transparent 92%); border-radius: var(--radius-pill); padding: 1px 7px; }
+.crumbs { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; font-size: var(--text-sm); color: var(--muted); } .crumbs .org-chip { display: flex; align-items: center; gap: var(--space-2); color: var(--fg); font-weight: 500; }
+.crumbs .org-chip .glyph { width: 20px; height: 20px; border-radius: 5px; background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-size: 9px; font-weight: 600; } .crumbs .sep { color: color-mix(in oklab, var(--muted), transparent 40%); }
+.crumbs .current { color: var(--fg); }
+.icon-btn { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid transparent; background: transparent; border-radius: var(--radius-sm); color: var(--muted); cursor: pointer; transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.icon-btn:hover { background: color-mix(in oklab, var(--fg), transparent 94%); color: var(--fg); } .icon-btn svg { width: 18px; height: 18px; }
+.icon-btn .dot { position: absolute; width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--accent); margin: -14px 0 0 14px; border: 1px solid var(--surface); }
+.org-switch { width: 100%; max-width: 260px; display: flex; align-items: center; gap: var(--space-3); text-align: left; padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.org-switch:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.org-switch .org-glyph { width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-weight: 600; font-size: 11px; flex-shrink: 0; } .org-switch .org-info { min-width: 0; flex: 1; }
+.org-switch .org-name { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .org-switch .org-domain { display: block; font-size: var(--text-xs); color: var(--muted); font-family: var(--font-mono); } .org-switch svg { width: 16px; height: 16px; color: var(--muted); }
+.account { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2); border-radius: var(--radius-sm); }
+.account .avatar { width: 30px; height: 30px; border-radius: var(--radius-pill); background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-weight: 600; font-size: 11px; flex-shrink: 0; } .account .who { min-width: 0; }
+.account .who b { display: block; font-weight: 500; font-size: var(--text-sm); } .account .who span { display: block; font-size: var(--text-xs); color: var(--muted); } .tabs { display: flex; gap: var(--space-1); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; } .tabs::-webkit-scrollbar { display: none; }
+.tab { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--muted); font-size: var(--text-sm); font-weight: 500; cursor: pointer; transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.tab:hover { background: color-mix(in oklab, var(--fg), transparent 95%); color: var(--fg); } .tab[aria-selected="true"] { background: color-mix(in oklab, var(--fg), transparent 90%); color: var(--fg); }
+.tab .tab-count { font-size: var(--text-xs); color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 0 7px; } .tab[aria-selected="true"] .tab-count { color: var(--fg); }
+.search-field { position: relative; display: flex; align-items: center; width: 260px; } .search-field svg { position: absolute; left: var(--space-3); width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
+.search-field input { width: 100%; padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-2) + 16px + var(--space-3)); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-sm); transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.search-field input::placeholder { color: var(--muted); } .search-field input:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); } .search-field input:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.select-wrap { position: relative; display: inline-flex; align-items: center; }
+.select-wrap select { appearance: none; -webkit-appearance: none; padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-sm); cursor: pointer; min-width: 150px; transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.select-wrap select:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); } .select-wrap select:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.select-wrap .chev { position: absolute; right: var(--space-3); width: 14px; height: 14px; color: var(--muted); pointer-events: none; } /* ── Données ────────────────────────────────────────────────────── */ .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); }
+.stat { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
+.stat .stat-label { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; } .stat .stat-value { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 600; line-height: 1.1; letter-spacing: var(--tracking-display); }
+.stat .stat-note { font-size: var(--text-xs); color: var(--muted); } .stat .stat-note b { color: var(--fg); font-weight: 500; } .seat-bar { height: 6px; border-radius: var(--radius-pill); background: color-mix(in oklab, var(--fg), transparent 92%); margin-top: var(--space-2); overflow: hidden; }
+.seat-bar span { display: block; height: 100%; background: var(--fg); border-radius: var(--radius-pill); } .table-wrap { overflow-x: auto; } table { width: 100%; border-collapse: collapse; min-width: 620px; }
+thead th { text-align: left; font-size: var(--text-xs); font-weight: 500; color: var(--muted); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); white-space: nowrap; } thead th.sortable { padding: 0; }
+thead th.sortable button { display: inline-flex; align-items: center; gap: var(--space-2); width: 100%; padding: var(--space-3) var(--space-4); border: none; background: transparent; cursor: pointer; font-size: var(--text-xs); font-weight: 500; color: var(--muted); transition: color var(--motion-fast) var(--ease-standard); }
+thead th.sortable button:hover { color: var(--fg); } thead th .sort-ind { width: 12px; height: 12px; opacity: 0; transition: opacity var(--motion-fast) var(--ease-standard); } thead th[aria-sort] .sort-ind { opacity: 1; } thead th[aria-sort="descending"] .sort-ind { transform: rotate(180deg); }
+tbody td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-soft); vertical-align: middle; } tbody tr:last-child td { border-bottom: none; } tbody tr:hover td { background: color-mix(in oklab, var(--fg), transparent 97%); } .cell-user { min-width: 190px; }
+.user-cell { display: flex; align-items: center; gap: var(--space-3); }
+.user-cell .avatar { width: 34px; height: 34px; border-radius: var(--radius-pill); flex-shrink: 0; background: color-mix(in oklab, var(--fg), transparent 90%); color: var(--fg); display: grid; place-items: center; font-size: 11px; font-weight: 600; } .user-cell .who { min-width: 0; }
+.user-cell .who b { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .user-cell .who span { display: block; font-size: var(--text-xs); color: var(--muted); font-family: var(--font-mono); }
+.scope { font-size: var(--text-xs); color: var(--muted); max-width: 220px; } .scope b { display: block; color: var(--fg-2); font-weight: 500; font-size: var(--text-sm); } .col-activity { white-space: nowrap; color: var(--muted); font-size: var(--text-xs); }
+.table-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); flex-wrap: wrap; } .table-foot .range { font-size: var(--text-xs); color: var(--muted); }
+.pager { display: flex; align-items: center; gap: var(--space-1); }
+.page-btn { min-width: 32px; height: 32px; padding: 0 var(--space-2); display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-xs); color: var(--fg); cursor: pointer; transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.page-btn:hover:not(:disabled) { background: color-mix(in oklab, var(--fg), transparent 94%); } .page-btn:disabled { color: color-mix(in oklab, var(--muted), transparent 45%); cursor: not-allowed; }
+.page-btn[aria-current="true"] { background: var(--fg); border-color: var(--fg); color: var(--accent-on); } .page-btn svg { width: 14px; height: 14px; }
+.check { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; cursor: pointer; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); display: grid; place-items: center; transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.check:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 30%); } .check:checked { background: var(--accent); border-color: var(--accent); }
+.check:checked::after { content: ""; width: 10px; height: 6px; border-left: 2px solid var(--accent-on); border-bottom: 2px solid var(--accent-on); transform: rotate(-45deg) translateY(-1px); } .empty { padding: var(--space-8) var(--space-6); text-align: center; }
+.empty h3 { font-size: var(--text-lg); margin-bottom: var(--space-2); } .empty p { color: var(--muted); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+.bulk { display: inline-flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--elev-raised); }
+.bulk b { font-weight: 500; font-size: var(--text-sm); white-space: nowrap; } .bulk .bulk-actions { display: flex; align-items: center; gap: var(--space-2); }
+/* ── Surcouches ─────────────────────────────────────────────────── */ .scrim { position: fixed; inset: 0; background: color-mix(in oklab, var(--fg), transparent 55%); z-index: 50; opacity: 0; visibility: hidden; transition: opacity var(--motion-base) var(--ease-standard), visibility var(--motion-base); }
+.scrim[data-show="true"] { opacity: 1; visibility: visible; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 460px; max-width: 100%; background: var(--surface); border-left: 1px solid var(--border); z-index: 60; display: flex; flex-direction: column; transform: translateX(100%); transition: transform var(--motion-base) var(--ease-standard); }
+.drawer[data-show="true"] { transform: translateX(0); } .drawer-head { padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--border); display: flex; gap: var(--space-3); align-items: flex-start; }
+.drawer-head .avatar { width: 40px; height: 40px; border-radius: var(--radius-pill); background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-size: 12px; font-weight: 600; flex-shrink: 0; } .drawer-head h2 { font-size: var(--text-lg); line-height: 1.3; }
+.drawer-head p { font-size: var(--text-xs); color: var(--muted); font-family: var(--font-mono); margin-top: 2px; } .drawer-body { flex: 1; overflow-y: auto; padding: var(--space-5) var(--space-6); }
+.drawer-foot { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: var(--space-2); }
+.perm-group > h3 { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-xs); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: var(--space-2); } .perm-group + .perm-group { margin-top: var(--space-5); }
+.perm-row { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) 0; border-bottom: 1px solid var(--border-soft); } .perm-row:last-child { border-bottom: none; } .perm-row label { flex: 1; font-size: var(--text-sm); cursor: pointer; }
+.modal-wrap { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: var(--space-4); }
+.modal { width: 100%; max-width: 480px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--elev-raised); overflow: hidden; animation: modal-in var(--motion-base) var(--ease-standard); }
+@keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(0.99); } } .modal-head { padding: var(--space-5) var(--space-6) 0; } .modal-head h2 { font-size: var(--text-xl); margin-bottom: var(--space-2); } .modal-head p { font-size: var(--text-sm); color: var(--muted); }
+.modal-body { padding: var(--space-5) var(--space-6); } .modal-foot { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: var(--space-2); }
+.toasts { position: fixed; right: var(--space-6); bottom: var(--space-6); z-index: 80; display: flex; flex-direction: column; gap: var(--space-2); }
+.toast { display: flex; align-items: flex-start; gap: var(--space-3); min-width: 280px; max-width: 360px; padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--elev-raised); animation: toast-in var(--motion-base) var(--ease-standard); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(6px); } } .toast svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--success); margin-top: 1px; } .toast b { display: block; font-size: var(--text-sm); font-weight: 500; }
+.toast span { font-size: var(--text-xs); color: var(--muted); } /* ── Règles ─────────────────────────────────────────────────────── */ .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); }
+.rule-card { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: var(--space-5); } .rule-card h3 { font-size: var(--text-sm); margin-bottom: var(--space-3); }
+.rule-card li { display: flex; gap: var(--space-3); font-size: var(--text-sm); color: var(--muted); padding: var(--space-2) 0; border-bottom: 1px solid var(--border-soft); } .rule-card li:last-child { border-bottom: none; } .rule-card li b { color: var(--fg); font-weight: 500; flex-shrink: 0; }
+.doc-foot { padding-top: var(--space-6); border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: var(--space-4); flex-wrap: wrap; font-size: var(--text-xs); color: var(--muted); } .doc-foot a { color: var(--fg); }
+/* ── Compléments ────────────────────────────────────────────────── */ .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+[role="tabpanel"] { padding: var(--space-4) var(--space-5); font-size: var(--text-sm); color: var(--muted); } .toolbar { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; padding: var(--space-4); border-bottom: 1px solid var(--border); }
+.toolbar .table-count { margin-left: auto; font-size: var(--text-xs); color: var(--muted); } .bulk-bar { position: fixed; left: 50%; bottom: var(--space-6); transform: translateX(-50%); z-index: 65; max-width: calc(100% - var(--space-8)); } .drawer-title { flex: 1; min-width: 0; }
+.drawer-head .icon-btn { margin-left: auto; flex-shrink: 0; } @media (max-width: 1000px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 900px) { .doc-layout { grid-template-columns: 1fr; } .doc-nav { position: static; height: auto; border-right: none; border-bottom: 1px solid var(--border); padding: var(--space-4) var(--container-gutter-tablet); display: flex; gap: var(--space-2); overflow-x: auto; } .doc-nav .nav-label { display: none; } .doc-nav a { white-space: nowrap; } .doc-hero h1 { font-size: var(--text-2xl); } }
+@media (max-width: 560px) { .doc-top { padding: 0 var(--space-4); gap: var(--space-2); } .doc-top .doc-links a:not(:last-child) { display: none; } .doc-main { padding: var(--space-6) var(--container-gutter-phone) var(--space-12); } .stats { grid-template-columns: 1fr; } .scale-row { grid-template-columns: 1fr; gap: var(--space-1); } .search-field { width: 100%; } .toasts { left: var(--space-4); right: var(--space-4); } .toast { min-width: 0; max-width: none; } .btn-primary, .btn-secondary, .tab, .nav-item, .page-btn, .icon-btn, .copy { min-height: 44px; } .page-btn, .icon-btn { min-width: 44px; } .field input, .field select, .field textarea, .search-field input, .select-wrap select { min-height: 44px; } .bulk { flex-wrap: wrap; } .bulk-bar { bottom: var(--space-4); } }
+</style>
+</head>
+<body data-od-root>
+  <header class="doc-top" data-od-id="doc-header">
+    <a class="brand" href="index.html" data-od-id="brand-link"><span class="logo-dot" aria-hidden="true"></span> <span class="brand-name">Atrium</span> <span class="brand-tag">Design system</span></a>
+    <nav class="doc-links" aria-label="Écrans du projet">
+      <a href="login.html" data-od-id="link-login">Connexion</a>  <a href="utilisateurs.html" data-od-id="link-users">Utilisateurs</a>  <a href="index.html" data-od-id="link-index">Tous les écrans</a>
+    </nav>
+  </header>
+  <div class="doc-layout">
+    <nav class="doc-nav" aria-label="Sections du design system" data-od-id="doc-nav">
+      <p class="nav-label">Fondations</p>
+      <a href="#couleurs" data-od-id="nav-couleurs"><span class="nav-num">01</span> Couleurs</a>  <a href="#typographie" data-od-id="nav-typographie"><span class="nav-num">02</span> Typographie</a>
+      <a href="#espacements" data-od-id="nav-espacements"><span class="nav-num">03</span> Espacements &amp; rayons</a>
+      <p class="nav-label" style="margin-top:var(--space-6)">Composants</p>
+      <a href="#boutons" data-od-id="nav-boutons"><span class="nav-num">04</span> Boutons</a>  <a href="#champs" data-od-id="nav-champs"><span class="nav-num">05</span> Champs de formulaire</a>
+      <a href="#badges" data-od-id="nav-badges"><span class="nav-num">06</span> Badges &amp; statuts</a>  <a href="#navigation" data-od-id="nav-navigation"><span class="nav-num">07</span> Navigation</a>
+      <a href="#donnees" data-od-id="nav-donnees"><span class="nav-num">08</span> Données &amp; tableaux</a>  <a href="#surcouches" data-od-id="nav-surcouches"><span class="nav-num">09</span> Surcouches</a>
+      <a href="#regles" data-od-id="nav-regles"><span class="nav-num">10</span> Règles d'usage</a>
+    </nav>
+    <main class="doc-main" data-od-id="doc-main">
+      <section class="doc-hero" data-od-id="hero">
+        <p class="eyebrow">Console Atrium · Plateforme multi-tenant</p>
+        <h1 data-od-id="hero-title">Design system</h1>
+        <p>Les fondations et les composants employés par les écrans Connexion et Utilisateurs &amp; droits. Chaque spécimen ci-dessous est le composant réel, extrait des pages en production — les mêmes classes, les mêmes tokens, les mêmes états.</p>
+        <div class="hero-meta">
+          <span>Base <b>Shadcn</b></span>            <span>Tokens <b>:root</b> — 53 variables</span>  <span>Accent <b>noir</b>, monochrome</span>  <span>Typographie <b>Geist</b> / <b>Fira Code</b></span>
+        </div>
+      </section>
+      <!-- 01 Couleurs -->
+      <section class="doc-section" id="couleurs" data-od-id="section-couleurs">
+        <div class="section-head">
+          <span class="section-num">01</span>
+          <h2 data-od-id="heading-couleurs">Couleurs</h2>
+        </div>
+        <p class="lede">
+          Palette monochrome : un seul accent — le noir — réservé aux actions primaires. Les couleurs sémantiques n'apparaissent que sur les pastilles de statut et les messages d'erreur. Toute couleur dérivée passe par  <code>color-mix()</code> à partir d'un token.
+        </p>
+        <p class="sub-title">Surfaces &amp; texte</p>
+        <div class="swatches">
+          <article class="swatch" data-od-id="swatch-bg">
+            <div class="chip" style="background:var(--bg)"></div>
+            <div class="meta">
+              <span class="tok">--bg</span>  <span class="role">Canvas de page</span>  <button type="button" class="copy" data-copy="#ffffff" data-od-id="copy-bg">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-surface">
+            <div class="chip" style="background:var(--surface)"></div>
+            <div class="meta">
+              <span class="tok">--surface</span>  <span class="role">Cartes, panneaux, modales</span>  <button type="button" class="copy" data-copy="#ffffff" data-od-id="copy-surface">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-fg">
+            <div class="chip" style="background:var(--fg)"></div>
+            <div class="meta">
+              <span class="tok">--fg</span>  <span class="role">Texte principal, titres</span>  <button type="button" class="copy" data-copy="#111827" data-od-id="copy-fg">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-muted">
+            <div class="chip" style="background:var(--muted)"></div>
+            <div class="meta">
+              <span class="tok">--muted</span>  <span class="role">Légendes, métadonnées</span>  <button type="button" class="copy" data-copy="#64748b" data-od-id="copy-muted">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-border">
+            <div class="chip" style="background:var(--border)"></div>
+            <div class="meta">
+              <span class="tok">--border</span>  <span class="role">Filets, bordures de champs</span>  <button type="button" class="copy" data-copy="#e5e7eb" data-od-id="copy-border">Copier la valeur</button>
+            </div>
+          </article>
+        </div>
+        <p class="sub-title">Accent &amp; états</p>
+        <div class="swatches">
+          <article class="swatch" data-od-id="swatch-accent">
+            <div class="chip" style="background:var(--accent)"></div>
+            <div class="meta">
+              <span class="tok">--accent</span>  <span class="role">Action primaire, anneau de focus</span>  <button type="button" class="copy" data-copy="#000000" data-od-id="copy-accent">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-accent-on">
+            <div class="chip" style="background:var(--accent-on)"></div>
+            <div class="meta">
+              <span class="tok">--accent-on</span>  <span class="role">Texte sur accent</span>  <button type="button" class="copy" data-copy="#ffffff" data-od-id="copy-accent-on">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-success">
+            <div class="chip" style="background:var(--success)"></div>
+            <div class="meta">
+              <span class="tok">--success</span>  <span class="role">Pastille « actif », confirmation</span>  <button type="button" class="copy" data-copy="#16a34a" data-od-id="copy-success">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-warn">
+            <div class="chip" style="background:var(--warn)"></div>
+            <div class="meta">
+              <span class="tok">--warn</span>  <span class="role">Pastille « en attente »</span>  <button type="button" class="copy" data-copy="#d97706" data-od-id="copy-warn">Copier la valeur</button>
+            </div>
+          </article>
+          <article class="swatch" data-od-id="swatch-danger">
+            <div class="chip" style="background:var(--danger)"></div>
+            <div class="role" style="padding-top:var(--space-2)"></div>
+            <div class="meta">
+              <span class="tok">--danger</span>  <span class="role">Pastille « suspendu », erreur</span>  <button type="button" class="copy" data-copy="#dc2626" data-od-id="copy-danger">Copier la valeur</button>
+            </div>
+          </article>
+        </div>
+        <div class="spec" style="margin-top:var(--space-6)" data-od-id="spec-banner-erre">
+          <div class="spec-head">
+            <b>Bannière d'erreur</b>  <span class="spec-code">.error-banner</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="error-banner" role="alert">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>Adresse e-mail ou mot de passe incorrect. Vérifiez vos identifiants et réessayez.</span>
+            </div>
+          </div>
+          <div class="spec-note">
+            Fond et bordure dérivés de  <b>--danger</b> par  <b>color-mix()</b> ; le texte reste au contraste AA sur fond clair.
+          </div>
+        </div>
+      </section>
+      <!-- 02 Typographie -->
+      <section class="doc-section" id="typographie" data-od-id="section-typographie">
+        <div class="section-head">
+          <span class="section-num">02</span>
+          <h2 data-od-id="heading-typographie">Typographie</h2>
+        </div>
+        <p class="lede">Geist pour l'affichage et le texte courant, Fira Code pour les données techniques — domaines, adresses e-mail, URL d'espace de travail. L'interlignage du corps est de 1,5, celui des titres de 1,2.</p>
+        <div class="spec" data-od-id="spec-echelle">
+          <div class="spec-head">
+            <b>Échelle</b>  <span class="spec-code">--text-xs → --text-4xl</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="scale-row">
+              <span class="scale-code">--text-4xl · 48px</span>  <span style="font-family:var(--font-display);font-size:var(--text-4xl);font-weight:600;line-height:1.1;letter-spacing:var(--tracking-display)">Un accès, tous vos espaces</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--text-3xl · 40px</span>  <span style="font-family:var(--font-display);font-size:var(--text-3xl);font-weight:600;line-height:1.2">Écrans de la console</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--text-2xl · 32px</span>  <span style="font-family:var(--font-display);font-size:var(--text-2xl);font-weight:600;line-height:1.2">Utilisateurs &amp; droits</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--text-xl · 24px</span>  <span style="font-family:var(--font-display);font-size:var(--text-xl);font-weight:600;line-height:1.2">Modifier les droits</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--text-lg · 20px</span>  <span style="font-size:var(--text-lg)">Atrium regroupe vos organisations</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--text-base · 16px</span>  <span style="font-size:var(--text-base)">Atrium regroupe vos organisations, équipes et projets.</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--text-sm · 14px</span>  <span style="font-size:var(--text-sm)">Le corps de texte par défaut de l'interface.</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--text-xs · 12px</span>  <span style="font-size:var(--text-xs)">Légendes, métadonnées, horodatages</span>
+            </div>
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-familles">
+          <div class="spec-head">
+            <b>Familles</b>  <span class="spec-code">--font-display · --font-body · --font-mono</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="scale-row">
+              <span class="scale-code">--font-display</span>  <span style="font-family:var(--font-display);font-weight:600;font-size:var(--text-lg)">Geist — titres et chiffres clés</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--font-body</span>  <span style="font-family:var(--font-body);font-size:var(--text-base)">Geist — texte courant et interface</span>
+            </div>
+            <div class="scale-row">
+              <span class="scale-code">--font-mono</span>  <span style="font-family:var(--font-mono);font-size:var(--text-sm)">studio-nord.atrium.app — Fira Code</span>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 03 Espacements -->
+      <section class="doc-section" id="espacements" data-od-id="section-espacements">
+        <div class="section-head">
+          <span class="section-num">03</span>
+          <h2 data-od-id="heading-espacements">Espacements, rayons &amp; élévation</h2>
+        </div>
+        <p class="lede">Grille de 4 px. Le rythme vertical des sections va de 32 à 48 px ; les rayons montent de 6 à 12 px, jamais au-delà. L'élévation se limite à deux couches — un filet plus une ombre diffuse.</p>
+        <p class="sub-title">Échelle d'espacement</p>
+        <div class="spec" data-od-id="spec-espace">
+          <div class="spec-head">
+            <b>Espacements</b>  <span class="spec-code">--space-1 → --space-12</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="space-row">
+              <span class="space-code">--space-1 · 4px</span> <span class="bar" style="width:4px"></span>
+            </div>
+            <div class="space-row">
+              <span class="space-code">--space-2 · 8px</span> <span class="bar" style="width:8px"></span>
+            </div>
+            <div class="space-row">
+              <span class="space-code">--space-3 · 12px</span> <span class="bar" style="width:12px"></span>
+            </div>
+            <div class="space-row">
+              <span class="space-code">--space-4 · 16px</span> <span class="bar" style="width:16px"></span>
+            </div>
+            <div class="space-row">
+              <span class="space-code">--space-5 · 20px</span> <span class="bar" style="width:20px"></span>
+            </div>
+            <div class="space-row">
+              <span class="space-code">--space-6 · 24px</span> <span class="bar" style="width:24px"></span>
+            </div>
+            <div class="space-row">
+              <span class="space-code">--space-8 · 32px</span> <span class="bar" style="width:32px"></span>
+            </div>
+            <div class="space-row">
+              <span class="space-code">--space-12 · 48px</span> <span class="bar" style="width:48px"></span>
+            </div>
+          </div>
+        </div>
+        <p class="sub-title">Rayons</p>
+        <div class="spec" data-od-id="spec-rayons">
+          <div class="spec-head">
+            <b>Rayons</b>  <span class="spec-code">--radius-sm · --radius-md · --radius-lg · --radius-pill</span>
+          </div>
+          <div class="spec-body">
+            <div class="radius-item">
+              <div class="shape" style="border-radius:var(--radius-sm)"></div>
+              <code>sm · 6px</code>
+            </div>
+            <div class="radius-item">
+              <div class="shape" style="border-radius:var(--radius-md)"></div>
+              <code>md · 8px</code>
+            </div>
+            <div class="radius-item">
+              <div class="shape" style="border-radius:var(--radius-lg)"></div>
+              <code>lg · 12px</code>
+            </div>
+            <div class="radius-item">
+              <div class="shape" style="border-radius:var(--radius-pill)"></div>
+              <code>pill</code>
+            </div>
+          </div>
+          <div class="spec-note">
+            <b>sm</b> pour les champs et boutons,  <b>md</b> pour les cartes,  <b>lg</b> pour les conteneurs ensurélevés,  <b>pill</b> pour les pastilles.
+          </div>
+        </div>
+        <p class="sub-title">Élévation &amp; mouvement</p>
+        <div class="elev-grid">
+          <div class="elev-item" style="box-shadow:var(--elev-flat)" data-od-id="elev-flat">
+            <code>--elev-flat</code>Repère plat
+          </div>
+          <div class="elev-item" style="box-shadow:var(--elev-ring)" data-od-id="elev-ring">
+            <code>--elev-ring</code>Filet 1 px
+          </div>
+          <div class="elev-item" style="box-shadow:var(--elev-raised)" data-od-id="elev-raised">
+            <code>--elev-raised</code>Surface flottante
+          </div>
+        </div>
+        <div class="spec-note" style="border:1px solid var(--border);border-radius:var(--radius-md);margin-top:var(--space-4)">
+          Mouvement :  <b>--motion-fast</b> 150 ms et  <b>--motion-base</b> 200 ms, courbe  <b>cubic-bezier(0.2, 0, 0, 1)</b>. Aucun effet au-delà de 250 ms.
+        </div>
+      </section>
+      <!-- 04 Boutons -->
+      <section class="doc-section" id="boutons" data-od-id="section-boutons">
+        <div class="section-head">
+          <span class="section-num">04</span>
+          <h2 data-od-id="heading-boutons">Boutons</h2>
+        </div>
+        <p class="lede">Deux variantes seulement. Le bouton primaire est noir et réservé à l'action décisive de l'écran ; le secondaire est neutre. Survol, appui, focus et désactivé sont définis par couple fond / texte.</p>
+        <div class="spec" data-od-id="spec-btn-variantes">
+          <div class="spec-head">
+            <b>Variantes</b>  <span class="spec-code">.btn-primary · .btn-secondary</span>
+          </div>
+          <div class="spec-body">
+            <button type="button" class="btn-primary" data-od-id="btn-primary-sample">Action principale</button>  <button type="button" class="btn-secondary" data-od-id="btn-secondary-sample">Action secondaire</button>
+            <button type="button" class="btn-primary" data-od-id="btn-primary-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg> Inviter</button>
+          </div>
+          <div class="spec-note">
+            Le survol du primaire lighten le fond vers  <b>--accent-hover</b> (mélange 10 % de blanc) — le texte blanc reste inchangé, le contraste ne baisse jamais. Cette page est un catalogue : elle présente la variante primaire plusieurs fois, alors qu'un écran produit n'admet qu'un seul appel primaire.
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-btn-etats">
+          <div class="spec-head">
+            <b>États</b>  <span class="spec-code">hover · focus-visible · active · busy · disabled</span>
+          </div>
+          <div class="spec-body">
+            <span><span class="spec-label">Survol (focus simulé)</span> <button type="button" class="btn-primary focus-demo" data-od-id="btn-focus-demo">Focus visible</button></span>
+            <span><span class="spec-label">Chargement</span> <button type="button" class="btn-primary" aria-busy="true" data-od-id="btn-busy-demo"><span class="spinner" aria-hidden="true"></span><span class="btn-label">Enregistrement…</span></button></span>
+            <span><span class="spec-label">Désactivé</span> <button type="button" class="btn-primary" disabled data-od-id="btn-disabled-demo">Indisponible</button></span>
+            <span><span class="spec-label">Plein largeur</span> <button type="button" class="btn-primary btn-block btn-lg" data-od-id="btn-block-demo">Se connecter</button></span>
+          </div>
+          <div class="spec-note">
+            Anneau de focus :  <b>0 0 0 2px var(--bg), 0 0 0 4px var(--accent)</b> — un halo de canvas puis l'anneau d'accent.
+          </div>
+        </div>
+      </section>
+      <!-- 05 Champs -->
+      <section class="doc-section" id="champs" data-od-id="section-champs">
+        <div class="section-head">
+          <span class="section-num">05</span>
+          <h2 data-od-id="heading-champs">Champs de formulaire</h2>
+        </div>
+        <p class="lede">Étiquette au-dessus du champ, aide en dessous, erreur en rouge sous le champ invalide. L'icône d'entrée est décorative ; le bouton d'affichage du mot de passe fait 32 px et conserve un focus visible.</p>
+        <div class="spec" data-od-id="spec-champ-texte">
+          <div class="spec-head">
+            <b>Champ texte</b>  <span class="spec-code">.field · .input-wrap · .input-icon</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="field">
+              <label for="dsEmail">Adresse e-mail</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
+                <input type="email" id="dsEmail" placeholder="vous@exemple.com" autocomplete="email" />
+              </div>
+              <p class="field-help">L'adresse sert à vous rediriger vers votre organisation après la première connexion.</p>
+            </div>
+          </div>
+          <div class="spec-note">L'étiquette reste toujours visible, jamais remplacée par le placeholder. L'icône est décorative : le sens vient de l'étiquette.</div>
+        </div>
+        <div class="spec" data-od-id="spec-champ-motdepasse">
+          <div class="spec-head">
+            <b>Champ mot de passe</b>  <span class="spec-code">.input-wrap · .pwd-toggle</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="field">
+              <label for="dsPwd">Mot de passe</label>
+              <div class="input-wrap">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <input type="password" id="dsPwd" placeholder="12 caractères minimum" autocomplete="new-password" />
+                <button type="button" class="pwd-toggle" data-od-id="toggle-password" aria-label="Afficher le mot de passe" aria-pressed="false"><svg class="ico-eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg><svg class="ico-eye-off" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 5.2A9.8 9.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.1M6.3 6.4A17 17 0 0 0 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.1-.9"/></svg></button>
+              </div>
+              <p class="field-help">Le bouton d'affichage porte une étiquette accessible et conserve un focus visible.</p>
+            </div>
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-champ-select">
+          <div class="spec-head">
+            <b>Liste déroulante &amp; zone de texte</b>  <span class="spec-code">.select-wrap · textarea</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="field">
+              <label for="dsRole">Rôle par défaut</label>
+              <div class="select-wrap" style="width:100%">
+                <select id="dsRole" style="width:100%"><option>Membre</option><option>Administrateur</option><option>Lecteur</option></select>
+                <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+            <div class="field">
+              <label for="dsNote">Note de service</label>  <textarea id="dsNote" placeholder="Visible par les membres de l'organisation"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-champ-erreur">
+          <div class="spec-head">
+            <b>État invalide &amp; cases à cocher</b>  <span class="spec-code">.field[data-invalid] · .checkbox · .divider</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="field" data-invalid="true">
+              <label for="dsDomain">Domaine</label>  <input class="no-icon" type="text" id="dsDomain" value="studio-nord" />
+              <p class="field-error">Le domaine doit se terminer par .atrium.app</p>
+            </div>
+            <label class="checkbox"><input type="checkbox" checked /><span>Se souvenir de cet appareil pendant 30 jours</span></label>
+            <p class="divider">ou</p>
+            <label class="checkbox"><input type="checkbox" /><span>Utiliser le SSO de l'organisation</span></label>
+          </div>
+        </div>
+      </section>
+      <!-- 06 Badges -->
+      <section class="doc-section" id="badges" data-od-id="section-badges">
+        <div class="section-head">
+          <span class="section-num">06</span>
+          <h2 data-od-id="heading-badges">Badges &amp; statuts</h2>
+        </div>
+        <p class="lede">Les pastilles qualifient un état, jamais une action. Trois statuts métier — actif, en attente, suspendu — plus une variante neutre et une variante pleine pour les.tags prioritaires.</p>
+        <div class="spec" data-od-id="spec-badges">
+          <div class="spec-head">
+            <b>Variantes</b>  <span class="spec-code">.badge[data-status] · .badge[data-variant]</span>
+          </div>
+          <div class="spec-body">
+            <span class="badge" data-od-id="badge-neutre"><span class="dot"></span>Neutre</span>  <span class="badge" data-variant="solid" data-od-id="badge-solid">Prioritaire</span>
+            <span class="badge" data-status="active" data-od-id="badge-actif"><span class="dot"></span>Actif</span>  <span class="badge" data-status="pending" data-od-id="badge-attente"><span class="dot"></span>En attente</span>
+            <span class="badge" data-status="suspended" data-od-id="badge-suspendu"><span class="dot"></span>Suspendu</span>
+          </div>
+          <div class="spec-note">
+            Texte et bordure sont dérivés du token sémantique par  <b>color-mix()</b>, le fond reste à 95 % de blanc. Le point de couleur est le seul signal chromatique du statut.
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-badges-usage">
+          <div class="spec-head">
+            <b>Usage</b>  <span class="spec-code">règle</span>
+          </div>
+          <div class="spec-body stack">
+            <p class="lede" style="margin:0">Un badge ne porte jamais plus de trois mots et n'est pas cliquable : c'est la ligne entière qui reçoit l'action. Les statuts se lisent dans un tableau, jamais dans un titre.</p>
+          </div>
+        </div>
+      </section>
+      <!-- 07 Navigation -->
+      <section class="doc-section" id="navigation" data-od-id="section-navigation">
+        <div class="section-head">
+          <span class="section-num">07</span>
+          <h2 data-od-id="heading-navigation">Navigation</h2>
+        </div>
+        <p class="lede">Rail latéral, fil d'Ariane, sélecteur d'organisation et onglets partagent la même grisaille : le noir ne sert qu'à l'élément courant.</p>
+        <div class="spec" data-od-id="spec-nav-rail">
+          <div class="spec-head">
+            <b>Rail latéral</b>  <span class="spec-code">.nav-item</span>
+          </div>
+          <div class="spec-body stack">
+            <a class="nav-item" href="#navigation" aria-current="page" data-od-id="nav-item-courant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/></svg>Utilisateurs<span class="count">128</span></a>
+            <a class="nav-item" href="#navigation" data-od-id="nav-item-organisations"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M15 9h2a2 2 0 0 1 2 2v10"/></svg>Organisations</a>
+            <a class="nav-item" href="#navigation" data-od-id="nav-item-facturation"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Facturation</a>
+          </div>
+          <div class="spec-note">
+            Un seul élément porte  <b>aria-current="page"</b> ; les autres restent en gris et gagnent le noir au survol, sans changer de contraste.
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-nav-fil">
+          <div class="spec-head">
+            <b>Fil d'Ariane &amp; sélecteur d'organisation</b>  <span class="spec-code">.crumbs · .org-switch</span>
+          </div>
+          <div class="spec-body stack">
+            <nav class="crumbs" aria-label="Fil d'Ariane" data-od-id="crumbs-demo">
+              <span class="org-chip"><span class="glyph">SN</span>Studio Nord</span>  <span class="sep">/</span>  <span class="current">Utilisateurs</span>
+            </nav>
+            <button type="button" class="org-switch" data-od-id="org-switch-demo"><span class="org-glyph">SN</span> <span class="org-info"><span class="org-name">Studio Nord</span><span class="org-domain">studio-nord.atrium.app</span></span> <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-tabs">
+          <div class="spec-head">
+            <b>Onglets</b>  <span class="spec-code">.tabs · .tab[aria-selected]</span>
+          </div>
+          <div class="spec-body stack" style="padding:0">
+            <div class="tabs" role="tablist" aria-label="Filtrer les membres" data-od-id="tabs-demo">
+              <button class="tab" role="tab" id="tab-all" aria-controls="panel-all" aria-selected="true" data-tab="all" data-od-id="tab-all">Tous<span class="tab-count">128</span></button>
+              <button class="tab" role="tab" id="tab-active" aria-controls="panel-active" aria-selected="false" tabindex="-1" data-tab="active" data-od-id="tab-active">Actifs<span class="tab-count">121</span></button>
+              <button class="tab" role="tab" id="tab-pending" aria-controls="panel-pending" aria-selected="false" tabindex="-1" data-tab="pending" data-od-id="tab-pending">Invitations<span class="tab-count">5</span></button>
+              <button class="tab" role="tab" id="tab-suspended" aria-controls="panel-suspended" aria-selected="false" tabindex="-1" data-tab="suspended" data-od-id="tab-suspended">Suspendus<span class="tab-count">2</span></button>
+            </div>
+            <div role="tabpanel" id="panel-all" aria-labelledby="tab-all" data-od-id="panel-all">Les 128 membres de l'organisation, tous rôles confondus.</div>
+            <div role="tabpanel" id="panel-active" aria-labelledby="tab-active" data-od-id="panel-active" hidden>121 comptes actifs, dont 94 % se connectent chaque semaine.</div>
+            <div role="tabpanel" id="panel-pending" aria-labelledby="tab-pending" data-od-id="panel-pending" hidden>5 invitations en attente d'acceptation, la plus ancienne date de 6 jours.</div>
+            <div role="tabpanel" id="panel-suspended" aria-labelledby="tab-suspended" data-od-id="panel-suspended" hidden>2 comptes suspendus ; les données restent conservées 90 jours.</div>
+          </div>
+          <div class="spec-note">L'onglet sélectionné reste en mémoire (localStorage) : la documentation s'ouvre sur la vue réellement utilisée.</div>
+        </div>
+      </section>
+      <!-- 08 Données -->
+      <section class="doc-section" id="donnees" data-od-id="section-donnees">
+        <div class="section-head">
+          <span class="section-num">08</span>
+          <h2 data-od-id="heading-donnees">Données &amp; tableaux</h2>
+        </div>
+        <p class="lede">Les indicateurs résument un périmètre avant le détail. Le tableau reste lisible sans JavaScript : le tri, la sélection et la pagination sont annoncés par des attributs, jamais par une image.</p>
+        <div class="stats" data-od-id="stats-demo">
+          <div class="stat" data-od-id="stat-membres">
+            <span class="stat-label">Membres</span> <span class="stat-value">128</span> <span class="stat-note">+6 ce mois-ci</span>
+          </div>
+          <div class="stat" data-od-id="stat-actifs">
+            <span class="stat-label">Actifs</span> <span class="stat-value">121</span> <span class="stat-note">94 % de l'effectif</span>
+          </div>
+          <div class="stat" data-od-id="stat-invitations">
+            <span class="stat-label">Invitations</span> <span class="stat-value">5</span> <span class="stat-note">dont <b>2</b> expirées</span>
+          </div>
+          <div class="stat" data-od-id="stat-sieges">
+            <span class="stat-label">Sièges</span> <span class="stat-value">140</span> <span class="stat-note">91 % utilisés</span>
+            <div class="seat-bar">
+              <span style="width:91%"></span>
+            </div>
+          </div>
+        </div>
+        <div class="spec" style="margin-top:var(--space-6)" data-od-id="spec-tableau">
+          <div class="spec-head">
+            <b>Tableau des membres</b>  <span class="spec-code">table · .check · .pager</span>
+          </div>
+          <div class="toolbar">
+            <div class="search-field">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
+              <input type="search" placeholder="Rechercher un membre" aria-label="Rechercher un membre" data-od-id="search-members" />
+            </div>
+            <div class="select-wrap">
+              <select aria-label="Filtrer par rôle" data-od-id="filter-role"><option>Tous les rôles</option><option>Administrateur</option><option>Membre</option><option>Lecteur</option></select>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <span class="table-count" data-od-id="table-count">128 membres</span>
+          </div>
+          <div class="table-wrap">
+            <table data-od-id="table-members">
+              <thead>
+                <tr>
+                  <th scope="col" style="width:44px"><input type="checkbox" class="check" aria-label="Tout sélectionner" data-od-id="check-all" /></th>
+                  <th scope="col" class="sortable" data-sort="name" aria-sort="ascending"><button type="button" data-od-id="sort-name">Membre<svg class="sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 5-5 5 5"/></svg></button></th>
+                  <th scope="col" class="sortable" data-sort="role"><button type="button" data-od-id="sort-role">Rôle<svg class="sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 5-5 5 5"/></svg></button></th>
+                  <th scope="col">Portée</th>  <th scope="col">Statut</th>
+                  <th scope="col" class="sortable" data-sort="activity"><button type="button" data-od-id="sort-activity">Dernière activité<svg class="sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7 11 5-5 5 5"/></svg></button></th>
+                </tr>
+              </thead>
+              <tbody data-od-id="tbody-members">
+                <tr data-name="amelie ndiaye" data-role="administrateur" data-activity="2026-11-21" data-od-id="row-ndiaye">
+                  <td><input type="checkbox" class="check" data-member aria-label="Sélectionner Amelie Ndiaye" /></td>
+                  <td class="cell-user">
+                    <div class="user-cell">
+                      <span class="avatar">AN</span>
+                      <div class="who">
+                        <b>Amelie Ndiaye</b> <span>amelie@studio-nord.fr</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge">Administrateur</span></td>  <td class="scope"><b>Toute l'organisation</b>Membres, projets, facturation</td>  <td><span class="badge" data-status="active"><span class="dot"></span>Actif</span></td>
+                  <td class="col-activity">Il y a 12 min</td>
+                </tr>
+                <tr data-name="jonas petit" data-role="membre" data-activity="2026-11-20" data-od-id="row-petit">
+                  <td><input type="checkbox" class="check" data-member aria-label="Sélectionner Jonas Petit" /></td>
+                  <td class="cell-user">
+                    <div class="user-cell">
+                      <span class="avatar">JP</span>
+                      <div class="who">
+                        <b>Jonas Petit</b> <span>jonas@studio-nord.fr</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge">Membre</span></td>  <td class="scope"><b>Équipe Produit</b>Projets et documents</td>  <td><span class="badge" data-status="active"><span class="dot"></span>Actif</span></td>  <td class="col-activity">Hier, 18:40</td>
+                </tr>
+                <tr data-name="salome ribeiro" data-role="lecteur" data-activity="2026-11-18" data-od-id="row-ribeiro">
+                  <td><input type="checkbox" class="check" data-member aria-label="Sélectionner Salomé Ribeiro" /></td>
+                  <td class="cell-user">
+                    <div class="user-cell">
+                      <span class="avatar">SR</span>
+                      <div class="who">
+                        <b>Salomé Ribeiro</b> <span>salome@studio-nord.fr</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge">Lecteur</span></td>  <td class="scope"><b>Projet Hélios</b>Lecture seule</td>  <td><span class="badge" data-status="pending"><span class="dot"></span>En attente</span></td>
+                  <td class="col-activity">Il y a 3 jours</td>
+                </tr>
+                <tr data-name="tom keller" data-role="membre" data-activity="2026-11-13" data-od-id="row-keller">
+                  <td><input type="checkbox" class="check" data-member aria-label="Sélectionner Tom Keller" /></td>
+                  <td class="cell-user">
+                    <div class="user-cell">
+                      <span class="avatar">TK</span>
+                      <div class="who">
+                        <b>Tom Keller</b> <span>tom@studio-nord.fr</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="badge">Membre</span></td>  <td class="scope"><b>Équipe Design</b>Projets et documents</td>  <td><span class="badge" data-status="suspended"><span class="dot"></span>Suspendu</span></td>
+                  <td class="col-activity">Il y a 8 jours</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="table-foot">
+            <span class="range">1–4 sur 128 membres</span>
+            <div class="pager">
+              <button type="button" class="page-btn" disabled aria-label="Page précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+              <button type="button" class="page-btn" aria-current="true">1</button>  <button type="button" class="page-btn">2</button>  <button type="button" class="page-btn">3</button>
+              <button type="button" class="page-btn" aria-label="Page suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
+            </div>
+          </div>
+        </div>
+        <div class="bulk-bar" id="bulkBar" hidden data-od-id="bulk-bar">
+          <div class="bulk">
+            <b><span id="bulkCount">0</span> sélectionné(s)</b>
+            <div class="bulk-actions">
+              <button type="button" class="btn-secondary" data-bulk-action="Invitation envoyée à la sélection" data-od-id="bulk-invite">Inviter</button>
+              <button type="button" class="btn-secondary" data-bulk-action="Comptes suspendus" data-od-id="bulk-suspend">Suspendre</button>  <button type="button" class="btn-secondary" data-clear-bulk data-od-id="bulk-clear">Annuler</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- 09 Surcouches -->
+      <section class="doc-section" id="surcouches" data-od-id="section-surcouches">
+        <div class="section-head">
+          <span class="section-num">09</span>
+          <h2 data-od-id="heading-surcouches">Surcouches</h2>
+        </div>
+        <p class="lede">Trois couches au-dessus du document : le tiroir latéral pour l'édition, la modale pour la confirmation courte, la notification pour le retour d'action. Chacune se ferme au clavier.</p>
+        <div class="spec" data-od-id="spec-surcouches">
+          <div class="spec-head">
+            <b>Ouvrir</b>  <span class="spec-code">.drawer · .modal · .toast</span>
+          </div>
+          <div class="spec-body">
+            <button type="button" class="btn-secondary" id="openDrawer" data-od-id="open-drawer">Ouvrir le tiroir</button>  <button type="button" class="btn-secondary" id="openModal" data-od-id="open-modal">Ouvrir la modale</button>
+            <button type="button" class="btn-secondary" id="pushToast" data-od-id="push-toast">Déclencher une notification</button>
+          </div>
+          <div class="spec-note">
+            Le voile est commun aux trois couches ; il se ferme au clic et à la touche  <b>Échap</b>. La notification s'efface seule après 4,2 s.
+          </div>
+        </div>
+        <div class="spec" data-od-id="spec-toast-modele">
+          <div class="spec-head">
+            <b>Notification</b>  <span class="spec-code">.toast</span>
+          </div>
+          <div class="spec-body stack">
+            <div class="toast" style="position:static;animation:none" data-od-id="toast-modele">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg>
+              <div>
+                <b>Rôle mis à jour</b> <span>Le rôle « Administrateur » a été appliqué à Amelie Ndiaye.</span>
+              </div>
+            </div>
+          </div>
+          <div class="spec-note">Le titre porte l'action, la ligne secondaire porte le détail. La pastille verte confirme sans animations superflues.</div>
+        </div>
+      </section>
+      <!-- 10 Règles -->
+      <section class="doc-section" id="regles" data-od-id="section-regles">
+        <div class="section-head">
+          <span class="section-num">10</span>
+          <h2 data-od-id="heading-regles">Règles d'usage</h2>
+        </div>
+        <p class="lede">Six règles non négociables. Elles arbitrent les cas litigieux : en cas de doute, la règle la plus sobre l'emporte.</p>
+        <div class="rules">
+          <div class="rule-card" data-od-id="rule-palette">
+            <h3>Palette uniquement</h3>
+            <ul>
+              <li>
+                <b>01</b> <span>Aucune couleur en dur hors du bloc <code>:root</code> ; toute nuance passe par <code>color-mix()</code>.</span>
+              </li>
+              <li>
+                <b>02</b> <span>Le noir est le seul accent. Bleu, violet, dégradés et ombres colorées sont exclus.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="rule-card" data-od-id="rule-typographie">
+            <h3>Typographie</h3>
+            <ul>
+              <li>
+                <b>01</b> <span>Geist pour l'affichage et le texte, Fira Code pour les données techniques.</span>
+              </li>
+              <li>
+                <b>02</b> <span>Graisses 400 / 500 / 600 seulement ; jamais d'ombre portée sur un texte.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="rule-card" data-od-id="rule-posture">
+            <h3>Posture de mise en page</h3>
+            <ul>
+              <li>
+                <b>01</b> <span>Grille de 4 px, rayons 6 / 8 / 12 px, deux couches d'élévation au maximum.</span>
+              </li>
+              <li>
+                <b>02</b> <span>Aucune illustration décorative, aucun dégradé, aucun halo d'accent.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="rule-card" data-od-id="rule-cta">
+            <h3>Un seul appel primaire</h3>
+            <ul>
+              <li>
+                <b>01</b> <span>Une action primaire par écran : celle qui conclut le parcours en cours.</span>
+              </li>
+              <li>
+                <b>02</b> <span>Les autres actions restent secondaires, jamais pleines.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="rule-card" data-od-id="rule-contraste">
+            <h3>Contraste des états</h3>
+            <ul>
+              <li>
+                <b>01</b> <span>Le survol ne baisse jamais le contraste entre le texte et son fond.</span>
+              </li>
+              <li>
+                <b>02</b> <span>Focus visible sur chaque contrôle : anneau de 2 px canvas puis 2 px accent.</span>
+              </li>
+            </ul>
+          </div>
+          <div class="rule-card" data-od-id="rule-vernis">
+            <h3>Pas de vernis</h3>
+            <ul>
+              <li>
+                <b>01</b> <span>Pas d'emoji, pas d'image générée, pas de micro-animation décorative.</span>
+              </li>
+              <li>
+                <b>02</b> <span>Le contenu réel remplace toute phrase d'appoint et tout remplissage.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </section>
+      <footer class="doc-foot" data-od-id="doc-footer">
+        <span>Design system Atrium — base Shadcn, tokens dans <code>:root</code>.</span>  <span>Écrans : <a href="login.html">Connexion</a> · <a href="utilisateurs.html">Utilisateurs &amp; droits</a> · <a href="index.html">Tous les écrans</a></span>
+      </footer>
+    </main>
+  </div>
+  <div class="scrim" id="scrim" data-show="false" data-od-id="scrim"></div>
+  <aside class="drawer" id="drawer" data-show="false" aria-hidden="true" aria-labelledby="drawerTitle" data-od-id="drawer">
+    <div class="drawer-head">
+      <span class="avatar">AN</span>
+      <div class="drawer-title">
+        <h2 id="drawerTitle">Amelie Ndiaye</h2>
+        <p>amelie@studio-nord.fr</p>
+      </div>
+      <button type="button" class="icon-btn" data-close-layer aria-label="Fermer le tiroir" data-od-id="close-drawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="drawer-body">
+      <div class="perm-group">
+        <h3>Rôle</h3>
+        <div class="perm-row">
+          <label for="perm-admin">Administrateur</label> <input type="checkbox" class="check" id="perm-admin" checked />
+        </div>
+        <div class="perm-row">
+          <label for="perm-membre">Membre</label> <input type="checkbox" class="check" id="perm-membre" />
+        </div>
+        <div class="perm-row">
+          <label for="perm-lecteur">Lecteur</label> <input type="checkbox" class="check" id="perm-lecteur" />
+        </div>
+      </div>
+      <div class="perm-group">
+        <h3>Portée</h3>
+        <div class="perm-row">
+          <label for="perm-membres">Gérer les membres</label> <input type="checkbox" class="check" id="perm-membres" checked />
+        </div>
+        <div class="perm-row">
+          <label for="perm-facturation">Voir la facturation</label> <input type="checkbox" class="check" id="perm-facturation" />
+        </div>
+      </div>
+    </div>
+    <div class="drawer-foot">
+      <button type="button" class="btn-secondary" data-close-layer data-od-id="drawer-cancel">Annuler</button>  <button type="button" class="btn-primary" id="drawerSave" data-od-id="drawer-save">Enregistrer</button>
+    </div>
+  </aside>
+  <div class="modal-wrap" id="modalWrap" hidden data-od-id="modal-wrap">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" data-od-id="modal">
+      <div class="modal-head">
+        <h2 id="modalTitle">Inviter un membre</h2>
+        <p>Un e-mail d'activation partira vers l'adresse saisie.</p>
+      </div>
+      <div class="modal-body">
+        <div class="field" style="margin-bottom:0">
+          <label for="modalEmail">Adresse e-mail</label>  <input class="no-icon" type="email" id="modalEmail" placeholder="prenom.nom@studio-nord.fr" />
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button type="button" class="btn-secondary" data-close-layer data-od-id="modal-cancel">Annuler</button>  <button type="button" class="btn-primary" id="modalConfirm" data-od-id="modal-confirm">Envoyer l'invitation</button>
+      </div>
+    </div>
+  </div>
+  <div class="toasts" id="toasts" aria-live="polite" data-od-id="toasts"></div>
+<script>
+(function () {
+  var KEY = 'atrium.ds.';
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(KEY + k); return v === null ? d : v; } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(KEY + k, v); } catch (e) {} }
+  };
+  var toasts = $('#toasts');
+  function pushToast(title, note) {
+    var el = document.createElement('div');
+    el.className = 'toast';
+    el.setAttribute('data-od-id', 'toast-item');
+    el.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg><div><b>' + title + '</b><span>' + note + '</span></div>';
+    toasts.appendChild(el);
+    setTimeout(function () { if (el.parentNode) { el.parentNode.removeChild(el); } }, 4200);
+  }
+  function copyFallback(value) {
+    var ta = document.createElement('textarea');
+    ta.value = value; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.top = '-1000px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+  $('.copy').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var value = btn.getAttribute('data-copy');
+      var report = function () { pushToast('Jeton copié', value); };
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(value).then(report, function () { copyFallback(value); report(); }); }
+      else { copyFallback(value); report(); }
+    });
+  });
+  var pwdInput = $('#dsPwd'), pwdBtn = $('.pwd-toggle');
+  if (pwdInput && pwdBtn) {
+    pwdBtn.addEventListener('click', function () {
+      var visible = pwdInput.type === 'text';
+      pwdInput.type = visible ? 'password' : 'text';
+      pwdBtn.setAttribute('aria-pressed', visible ? 'false' : 'true');
+      pwdBtn.setAttribute('aria-label', visible ? 'Afficher le mot de passe' : 'Masquer le mot de passe');
+      $('.ico-eye', pwdBtn).hidden = !visible; $('.ico-eye-off', pwdBtn).hidden = visible;
+    });
+  }
+  var tabs = $('.tab');
+  function selectTab(key, persist) {
+    tabs.forEach(function (tab) {
+      var on = tab.getAttribute('data-tab') === key;
+      tab.setAttribute('aria-selected', on ? 'true' : 'false');
+      tab.setAttribute('tabindex', on ? '0' : '-1');
+      var panel = document.getElementById(tab.getAttribute('aria-controls'));
+      if (panel) { panel.hidden = !on; }
+    });
+    if (persist) { store.set('tab', key); }
+  }
+  tabs.forEach(function (tab) { tab.addEventListener('click', function () { selectTab(tab.getAttribute('data-tab'), true); }); });
+  selectTab(store.get('tab', 'all'), false);
+  var tbody = $('#tbody-members'), sortable = $('th.sortable');
+  function orderRows(key, dir) {
+    var rows = $('tr', tbody);
+    rows.sort(function (a, b) {
+      var av = (a.getAttribute('data-' + key) || '').toLowerCase(), bv = (b.getAttribute('data-' + key) || '').toLowerCase();
+      return av === bv ? 0 : (av < bv ? -1 : 1);
+    });
+    if (dir === 'descending') { rows.reverse(); }
+    rows.forEach(function (row) { tbody.appendChild(row); });
+  }
+  function applySort(key, dir) {
+    sortable.forEach(function (th) { th.setAttribute('aria-sort', th.getAttribute('data-sort') === key ? dir : 'none'); });
+    orderRows(key, dir);
+  }
+  sortable.forEach(function (th) {
+    var btn = th.querySelector('button');
+    if (!btn) { return; }
+    btn.addEventListener('click', function () {
+      var key = th.getAttribute('data-sort'), dir = th.getAttribute('aria-sort') === 'ascending' ? 'descending' : 'ascending';
+      applySort(key, dir); store.set('sort', key + ':' + dir);
+    });
+  });
+  var savedSort = store.get('sort', '').split(':');
+  if (savedSort.length === 2) { applySort(savedSort[0], savedSort[1]); }
+  var members = $('.check[data-member]'), bulkBar = $('#bulkBar'), bulkCount = $('#bulkCount'), checkAll = $('#check-all');
+  function syncBulk() {
+    var n = members.filter(function (c) { return c.checked; }).length;
+    bulkCount.textContent = String(n);
+    bulkBar.hidden = n === 0;
+    if (checkAll) { checkAll.checked = n > 0 && n === members.length; }
+  }
+  members.forEach(function (c) { c.addEventListener('change', syncBulk); });
+  checkAll.addEventListener('change', function () { members.forEach(function (c) { c.checked = checkAll.checked; }); syncBulk(); });
+  $('[data-clear-bulk]').forEach(function (btn) { btn.addEventListener('click', function () { members.forEach(function (c) { c.checked = false; }); syncBulk(); }); });
+  $('[data-bulk-action]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      pushToast('Action groupée', btn.getAttribute('data-bulk-action'));
+      members.forEach(function (c) { c.checked = false; }); syncBulk();
+    });
+  });
+  var scrim = $('#scrim'), drawer = $('#drawer'), modalWrap = $('#modalWrap');
+  function closeLayers() {
+    if (drawer) { drawer.setAttribute('data-show', 'false'); drawer.setAttribute('aria-hidden', 'true'); }
+    if (modalWrap) { modalWrap.setAttribute('data-show', 'false'); modalWrap.setAttribute('aria-hidden', 'true'); modalWrap.hidden = true; }
+    if (scrim) { scrim.setAttribute('data-show', 'false'); }
+    document.body.style.overflow = '';
+  }
+  function openLayer(layer) {
+    if (scrim) { scrim.setAttribute('data-show', 'true'); }
+    layer.setAttribute('data-show', 'true'); layer.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  $('#openDrawer').addEventListener('click', function () { openLayer(drawer); });
+  $('#openModal').addEventListener('click', function () { modalWrap.hidden = false; openLayer(modalWrap); });
+  $('#pushToast').addEventListener('click', function () { pushToast('Rôle mis à jour', 'Le rôle « Administrateur » a été appliqué.'); });
+  scrim.addEventListener('click', closeLayers);
+  $('[data-close-layer]').forEach(function (btn) { btn.addEventListener('click', closeLayers); });
+  $('#drawerSave').addEventListener('click', function () { closeLayers(); pushToast('Droits enregistrés', 'Les permissions sont appliquées.'); });
+  $('#modalConfirm').addEventListener('click', function () { closeLayers(); pushToast('Invitation envoyée', 'Un e-mail d’activation a été transmis.'); });
+  modalWrap.addEventListener('click', function (e) { if (e.target === modalWrap) { closeLayers(); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' || e.keyCode === 27) { closeLayers(); } });
+  var navLinks = $('.doc-nav a');
+  var targets = navLinks.map(function (a) { return document.querySelector(a.getAttribute('href')); });
+  function spy() {
+    var y = window.scrollY + 140, current = '';
+    targets.forEach(function (section, i) { if (section && section.offsetTop <= y) { current = navLinks[i].getAttribute('href'); } });
+    navLinks.forEach(function (a) { a.setAttribute('aria-current', a.getAttribute('href') === current ? 'true' : 'false'); });
+  }
+  window.addEventListener('scroll', spy, { passive: true });
+  window.addEventListener('resize', spy);
+  spy();
+})();
+</script>
+</body>
+</html>

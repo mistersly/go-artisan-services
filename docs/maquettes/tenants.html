@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestion des clients — Atrium</title>
+<style>:root {
+  /* ─── Surface (3 levels — schema slot) ─────────────────────────────
+   * Pure white canvas, pure white cards. shadcn intentionally rejects
+   * background-color variation between sections — depth comes from the
+   * border and the elevation hairline, not from tinting surfaces
+   * warmer or cooler. `--surface-warm` aliases to surface because the
+   * brand has no third tier; extending themes (e.g. a "Stone" preset)
+   * rebind independently. */
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --surface-warm: var(--surface);     /* alias — shadcn has no warm tier */
+
+  /* ─── Foreground ramp (4 levels) ──────────────────────────────────
+   * shadcn differentiates two text levels in its base preset: primary
+   * (slate-900) and muted (slate-500). `--fg-2` aliases to `--fg` and
+   * `--meta` aliases to `--muted` so shared components targeting the
+   * richer ramp still resolve. `--fg` is `#111827` (slate-900) NOT
+   * `#000000` — the slight cool undertone is part of the neutral
+   * system. Pure black is reserved for `--accent` (the decisive CTA). */
+  --fg: #111827;                       /* slate-900 — body text (DESIGN.md §2 Text) */
+  --fg-2: var(--fg);                   /* alias — shadcn has no secondary fg tier */
+  --muted: #64748b;                    /* slate-500 — captions, subtext, descriptions */
+  --meta: var(--muted);                /* alias — shadcn has no metadata tier */
+
+  /* ─── Border (2 levels) ──────────────────────────────────────────
+   * Single hairline weight. shadcn uses real `border: 1px solid` (not
+   * shadow-as-border like Vercel) — the explicit edge is part of the
+   * copy-paste primitive's "you can see exactly what's drawn" voice.
+   * `--border-soft` aliases for brands that need a row-separator vs
+   * card-edge distinction; shadcn does not. */
+  --border: #e5e7eb;                   /* slate-200 — card edge, input edge, dividers */
+  --border-soft: var(--border);        /* alias — shadcn has no soft tier */
+
+  /* ─── Accent ─────────────────────────────────────────────────────
+   * Pure black per DESIGN.md §2 ("Primary: #000000 — Favor Primary
+   * for CTA emphasis"). shadcn's primary button is `bg-primary` =
+   * near-black on white; that IS the accent moment. The hover and
+   * active states mix toward WHITE (not toward black) because pure
+   * black cannot darken further — this mirrors the shadcn idiom
+   * `bg-primary hover:bg-primary/90` where the fill lightens slightly
+   * on pointer-over to signal interactivity. */
+  --accent: #000000;                   /* DESIGN.md §2 Primary — CTA fill */
+  --accent-on: #ffffff;                /* white label on black */
+  --accent-hover: color-mix(in oklab, var(--accent), white 10%);   /* ~#1a1a1a — lift, don't press */
+  --accent-active: color-mix(in oklab, var(--accent), white 18%);  /* ~#2e2e2e — clear pressed delta */
+
+  /* ─── Semantic ───────────────────────────────────────────────────
+   * Reserved for state, not decoration. Values come directly from
+   * DESIGN.md §2 — Tailwind green-600 / amber-600 / red-600. Keep
+   * total semantic-color pixels under 5% of any surface; shadcn
+   * primitives use them for badges and validation only, never as
+   * filler chrome. */
+  --success: #16a34a;
+  --warn: #d97706;                     /* DESIGN.md §2 Warning — amber-600, not the schema yellow */
+  --danger: #dc2626;
+
+  /* ─── Typography ─────────────────────────────────────────────────
+   * Geist Sans for display and body per DESIGN.md §3 — modern, neutral,
+   * humanist sans that ships open-source. Geist scales cleanly from
+   * 12px UI to 48px hero without re-weighting. Fira Code for monospace
+   * (DESIGN.md §3 mono) lends code blocks the legible ligature-friendly
+   * face shadcn examples gravitate toward. OS-mono fallback covers
+   * environments without Fira Code installed. */
+  --font-display: "Geist", "Geist Sans", -apple-system, system-ui, "Segoe UI", Arial, sans-serif;
+  --font-body: "Geist", "Geist Sans", -apple-system, system-ui, "Segoe UI", Arial, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
+
+  /* Type scale (px) — DESIGN.md §3 lists 12/14/16/20/24/32; we extend
+   * 40/48 for marketing hero treatments. The scale stays restrained
+   * (no 64+ display) because shadcn's voice is "build your own", not
+   * "look at this hero". Hierarchy comes from weight + spacing, not
+   * px excess. */
+  --text-xs: 12px;                     /* caption, meta, badge */
+  --text-sm: 14px;                     /* button, input, secondary body */
+  --text-base: 16px;                   /* body baseline */
+  --text-lg: 20px;                     /* lede, featured paragraph */
+  --text-xl: 24px;                     /* card title, H3 */
+  --text-2xl: 32px;                    /* section title, H2 */
+  --text-3xl: 40px;                    /* H1 */
+  --text-4xl: 48px;                    /* display hero (marketing only) */
+
+  /* Body leading at 1.5 (shadcn docs default), tight leading at 1.2
+   * for headings. Display tracking is a gentle `-0.02em` — shadcn
+   * whispers; the aggressive `-0.05em` compression of brand-voice
+   * systems would override the calm baseline that makes shadcn
+   * recognizable. */
+  --leading-body: 1.5;
+  --leading-tight: 1.2;
+  --tracking-display: -0.02em;
+
+  /* ─── Spacing ────────────────────────────────────────────────────
+   * 4px-grid base scale. DESIGN.md §4 documents 4/8/12/16/24/32; the
+   * schema requires 8 tiers so we add 20 and 48 for breathing room
+   * between cards and inside marketing forms. Tailwind/shadcn users
+   * map these to `space-1` → `space-12` mentally without translation. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+
+  /* Section rhythm — generous but never gallery-empty. 96px desktop
+   * matches shadcn marketing pages (py-24 in Tailwind units), 64px
+   * tablet preserves the documented hierarchy, 48px phone collapses
+   * without losing the breathing room that distinguishes shadcn
+   * sections from dense dashboard layouts. */
+  --section-y-desktop: 96px;
+  --section-y-tablet: 64px;
+  --section-y-phone: 48px;
+
+  /* ─── Radius ─────────────────────────────────────────────────────
+   * The canonical shadcn default is `--radius: 0.5rem` (8px) and the
+   * smaller variants compute as `calc(var(--radius) - Npx)`. We bind:
+   *   sm 6px → buttons, inputs (the `calc(--radius - 2px)` tier)
+   *   md 8px → cards, modals (the documented baseline)
+   *   lg 12px → featured containers (the `calc(--radius + 4px)` tier)
+   *   pill 9999px → badges, avatars, capsule chips */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 9999px;
+
+  /* ─── Elevation (3 levels) ───────────────────────────────────────
+   * Tailwind-`shadow-sm` philosophy: two whisper-soft layers, no
+   * atmospheric blur. shadcn rejects the multi-layer card stack
+   * because the brand voice is "you can read exactly what's drawn",
+   * not "look how lifted this is". `--elev-ring` carries hairline
+   * edges where a real border would shift layout; `--elev-raised`
+   * adds the 1px+3px ambient pair for dropdowns, popovers, and
+   * floating panels. */
+  --elev-flat: none;
+  --elev-ring: 0 0 0 1px var(--border);
+  --elev-raised:
+    0 1px 2px 0 color-mix(in oklab, var(--fg), transparent 92%),
+    0 1px 3px 0 color-mix(in oklab, var(--fg), transparent 88%);
+
+  /* ─── Focus ring ─────────────────────────────────────────────────
+   * The shadcn signature: 2px halo of canvas color (the "offset")
+   * wrapped by a 2px ring of accent. This is the `ring-2 ring-offset-2
+   * ring-ring` Tailwind utility every shadcn primitive inherits,
+   * expressed as a layered box-shadow so it works on light, dark,
+   * glass surfaces, and inside scrollers without the outline-offset
+   * caveats. DESIGN.md §6 explicitly requires "strong focus-visible
+   * states" — this is the rule, not a suggestion. */
+  --focus-ring: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent);
+
+  /* ─── Motion ─────────────────────────────────────────────────────
+   * Two durations + one easing curve, per DESIGN.md §7 "short,
+   * purposeful transitions (150–250ms) with stable easing". shadcn
+   * primitives are quick and unobtrusive — never a long-form
+   * choreographed entrance. */
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ─── Layout ─────────────────────────────────────────────────────
+   * 1280px max content width (`max-w-7xl`) — the canonical shadcn
+   * marketing-page width that keeps line lengths comfortable on
+   * wide displays without edge-bleeding into 1440px+ territory.
+   * Gutters narrow to 16px on phone but never collapse to 0; shadcn
+   * preserves the visible inset that frames the column. */
+  --container-max: 1280px;
+  --container-gutter-desktop: 24px;
+  --container-gutter-tablet: 16px;
+  --container-gutter-phone: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: var(--text-sm); line-height: var(--leading-body); -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: inherit; font-size: inherit; color: inherit; }
+ul, li, ol { list-style: none; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 600; letter-spacing: var(--tracking-display); }
+:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+/* ── App shell ─────────────────────────────────────────────────── */
+.app { display: grid; grid-template-columns: 256px 1fr; min-height: 100vh; }
+.sidebar { border-right: 1px solid var(--border); background: var(--surface); padding: var(--space-5) var(--space-4); display: flex; flex-direction: column; gap: var(--space-6); position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.brand { display: flex; align-items: center; gap: var(--space-3); padding: 0 var(--space-2); }
+.brand .logo-dot { width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--fg); display: grid; place-items: center; flex-shrink: 0; }
+.brand .logo-dot::after { content: ""; width: 12px; height: 12px; border-radius: 3px; background: var(--bg); }
+.brand .brand-name { font-family: var(--font-display); font-weight: 600; font-size: var(--text-base); }
+.brand .brand-tag { margin-left: auto; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 2px 8px; }
+.org-switch { width: 100%; display: flex; align-items: center; gap: var(--space-3); text-align: left; padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); cursor: pointer; transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.org-switch:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.org-switch:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.org-switch .org-glyph { width: 28px; height: 28px; border-radius: var(--radius-sm); background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-weight: 600; font-size: 11px; flex-shrink: 0; }
+.org-switch .org-info { min-width: 0; flex: 1; }
+.org-switch .org-name { display: block; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.org-switch .org-domain { display: block; font-size: var(--text-xs); color: var(--muted); font-family: var(--font-mono); }
+.org-switch svg { width: 16px; height: 16px; color: var(--muted); flex-shrink: 0; }
+.nav-group + .nav-group { margin-top: var(--space-5); }
+.nav-label { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); padding: 0 var(--space-3); margin-bottom: var(--space-2); }
+.nav-item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); color: var(--muted); font-size: var(--text-sm); transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+.nav-item:hover { background: color-mix(in oklab, var(--fg), transparent 94%); color: var(--fg); }
+.nav-item[aria-current="page"] { background: color-mix(in oklab, var(--fg), transparent 90%); color: var(--fg); font-weight: 500; }
+.nav-item .count { margin-left: auto; font-size: var(--text-xs); color: var(--muted); background: color-mix(in oklab, var(--fg), transparent 92%); border-radius: var(--radius-pill); padding: 1px 7px; }
+.sidebar-foot { margin-top: auto; border-top: 1px solid var(--border); padding-top: var(--space-4); }
+.account { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2); border-radius: var(--radius-sm); }
+.account .avatar { width: 30px; height: 30px; border-radius: var(--radius-pill); background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-weight: 600; font-size: 11px; flex-shrink: 0; }
+.account .who { min-width: 0; }
+.account .who b { display: block; font-weight: 500; font-size: var(--text-sm); }
+.account .who span { display: block; font-size: var(--text-xs); color: var(--muted); }
+/* ── Topbar ────────────────────────────────────────────────────── */
+.main { min-width: 0; display: flex; flex-direction: column; }
+.topbar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: var(--space-4); height: 60px; padding: 0 var(--space-6); background: var(--surface); border-bottom: 1px solid var(--border); }
+.crumbs { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--muted); }
+.crumbs .org-chip { display: flex; align-items: center; gap: var(--space-2); color: var(--fg); font-weight: 500; }
+.crumbs .org-chip .glyph { width: 20px; height: 20px; border-radius: 5px; background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-size: 9px; font-weight: 600; }
+.crumbs .sep { color: color-mix(in oklab, var(--muted), transparent 40%); }
+.crumbs .current { color: var(--fg); }
+.topbar-actions { margin-left: auto; display: flex; align-items: center; gap: var(--space-2); }
+.icon-btn { position: relative; width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid transparent; background: transparent; border-radius: var(--radius-sm); color: var(--muted); cursor: pointer; transition: background var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.icon-btn:hover { background: color-mix(in oklab, var(--fg), transparent 94%); color: var(--fg); }
+.icon-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.icon-btn svg { width: 18px; height: 18px; }
+.icon-btn .dot { position: absolute; width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--accent); margin: -14px 0 0 14px; border: 1px solid var(--surface); }
+.menu-btn { display: none; }
+.topbar-avatar { width: 32px; height: 32px; border-radius: var(--radius-pill); background: var(--fg); color: var(--accent-on); display: grid; place-items: center; font-size: 11px; font-weight: 600; margin-left: var(--space-2); }
+/* ── Content ───────────────────────────────────────────────────── */
+.content { flex: 1; width: 100%; max-width: var(--container-max); margin: 0 auto; padding: var(--space-8) var(--container-gutter-desktop) var(--space-12); }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-6); margin-bottom: var(--space-6); flex-wrap: wrap; }
+.page-head h1 { font-size: var(--text-2xl); line-height: var(--leading-tight); margin-bottom: var(--space-2); }
+.page-head p { color: var(--muted); font-size: var(--text-sm); max-width: 56ch; }
+.page-actions { display: flex; align-items: center; gap: var(--space-2); }
+.btn-primary, .btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2); padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); font-size: var(--text-sm); font-weight: 500; cursor: pointer; white-space: nowrap; transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.btn-primary { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-on); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:active { background: var(--accent-active); }
+.btn-primary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.btn-secondary { border: 1px solid var(--border); background: var(--surface); color: var(--fg); }
+.btn-secondary:hover { background: color-mix(in oklab, var(--fg), transparent 96%); border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.btn-secondary:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.btn-primary svg, .btn-secondary svg { width: 16px; height: 16px; }
+.btn-primary .spinner, .btn-secondary .spinner { display: none; width: 15px; height: 15px; border: 2px solid color-mix(in oklab, currentColor, transparent 70%); border-top-color: currentColor; border-radius: var(--radius-pill); animation: spin 0.7s linear infinite; }
+.btn-primary[aria-busy="true"] .spinner, .btn-secondary[aria-busy="true"] .spinner { display: block; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* ── Stats ─────────────────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-4); margin-bottom: var(--space-6); }
+.stat { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-1); }
+.stat .stat-label { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.stat .stat-value { font-family: var(--font-display); font-size: var(--text-xl); font-weight: 600; line-height: 1.1; letter-spacing: var(--tracking-display); font-variant-numeric: tabular-nums; }
+.stat .stat-note { font-size: var(--text-xs); color: var(--muted); }
+.stat .stat-note b { color: var(--fg); font-weight: 500; }
+  .user-bar { height: 6px; border-radius: var(--radius-pill); background: color-mix(in oklab, var(--fg), transparent 92%); margin-top: var(--space-2); overflow: hidden; }
+  .user-bar span { display: block; height: 100%; background: var(--fg); border-radius: var(--radius-pill); }
+/* ── Panel ─────────────────────────────────────────────────────── */
+.panel { border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); overflow: hidden; }
+.toolbar { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.search-field { position: relative; display: flex; align-items: center; flex: 1 1 240px; max-width: 340px; }
+.search-field svg { position: absolute; left: var(--space-3); width: 16px; height: 16px; color: var(--muted); pointer-events: none; }
+.search-field input { width: 100%; padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-2) + 16px + var(--space-3)); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-sm); transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.search-field input::placeholder { color: var(--muted); }
+.search-field input:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.search-field input:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.select-wrap { position: relative; display: inline-flex; align-items: center; }
+.select-wrap select { appearance: none; -webkit-appearance: none; padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-sm); cursor: pointer; min-width: 150px; transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.select-wrap select:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.select-wrap select:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.select-wrap .chev { position: absolute; right: var(--space-3); width: 14px; height: 14px; color: var(--muted); pointer-events: none; }
+.date-field { display: inline-flex; align-items: center; gap: var(--space-2); }
+.date-field > span { font-size: var(--text-xs); color: var(--muted); white-space: nowrap; }
+.date-field input { padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-sm); color: var(--fg); transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.date-field input:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.date-field input:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.toolbar-note { margin-left: auto; font-size: var(--text-xs); color: var(--muted); white-space: nowrap; }
+/* ── Table ─────────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 1240px; }
+thead th { text-align: left; font-size: var(--text-xs); font-weight: 500; color: var(--muted); padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border); white-space: nowrap; }
+thead th.sortable { padding: 0; }
+thead th.sortable button { display: inline-flex; align-items: center; gap: var(--space-2); width: 100%; padding: var(--space-3) var(--space-4); border: none; background: transparent; cursor: pointer; font-size: var(--text-xs); font-weight: 500; color: var(--muted); transition: color var(--motion-fast) var(--ease-standard); }
+thead th.sortable button:hover { color: var(--fg); }
+thead th.sortable button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+thead th .sort-ind { width: 12px; height: 12px; opacity: 0; transition: opacity var(--motion-fast) var(--ease-standard); }
+thead th[aria-sort] .sort-ind { opacity: 1; }
+thead th[aria-sort="descending"] .sort-ind { transform: rotate(180deg); }
+tbody td { padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: color-mix(in oklab, var(--fg), transparent 97%); }
+tbody tr[data-selected="true"] td { background: color-mix(in oklab, var(--fg), transparent 93%); }
+tbody tr[data-selected="true"]:hover td { background: color-mix(in oklab, var(--fg), transparent 90%); }
+.cell-check { width: 44px; }
+.cell-tenant { min-width: 240px; }
+.col-domain { min-width: 220px; }
+.col-status { width: 110px; }
+.col-billing { width: 168px; }
+.col-plan { width: 130px; }
+.col-users { width: 110px; }
+.col-activity { width: 150px; }
+.col-actions { width: 52px; text-align: right; }
+.tenant-cell { display: flex; align-items: center; gap: var(--space-3); }
+.logo-tile { width: 34px; height: 34px; border-radius: var(--radius-sm); background: color-mix(in oklab, var(--fg), transparent 91%); border: 1px solid var(--border); color: var(--fg); display: grid; place-items: center; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; flex-shrink: 0; }
+.logo-tile--lg { width: 40px; height: 40px; font-size: 12px; border-radius: var(--radius-md); }
+.tenant-cell .who { min-width: 0; }
+.tenant-cell .who b { display: block; font-weight: 500; overflow: hidden; }
+.link-btn { border: none; background: transparent; padding: 0; font: inherit; font-weight: 500; color: var(--fg); cursor: pointer; text-align: left; border-radius: 3px; display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: color var(--motion-fast) var(--ease-standard); }
+.link-btn:hover { color: var(--fg); text-decoration: underline; text-underline-offset: 2px; }
+.link-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.tenant-cell .who > span { display: block; font-size: var(--text-xs); color: var(--muted); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .domain-cell { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--fg); display: flex; align-items: center; gap: var(--space-2); white-space: nowrap; }
+.domain-flag { font-family: var(--font-body); font-size: 10px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius-pill); padding: 1px 6px; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: var(--space-2); padding: 2px var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-pill); background: color-mix(in oklab, var(--fg), transparent 95%); font-size: var(--text-xs); color: var(--fg); white-space: nowrap; }
+.badge .dot { width: 6px; height: 6px; border-radius: var(--radius-pill); background: var(--muted); }
+.badge[data-status="active"] { color: color-mix(in oklab, var(--success), var(--fg) 28%); border-color: color-mix(in oklab, var(--success), white 68%); background: color-mix(in oklab, var(--success), white 94%); }
+.badge[data-status="active"] .dot { background: var(--success); }
+.badge[data-status="paused"] { color: color-mix(in oklab, var(--warn), var(--fg) 32%); border-color: color-mix(in oklab, var(--warn), white 66%); background: color-mix(in oklab, var(--warn), white 93%); }
+.badge[data-status="paused"] .dot { background: var(--warn); }
+.badge[data-status="banned"] { color: color-mix(in oklab, var(--danger), var(--fg) 24%); border-color: color-mix(in oklab, var(--danger), white 68%); background: color-mix(in oklab, var(--danger), white 95%); }
+.badge[data-status="banned"] .dot { background: var(--danger); }
+/* ── Billing badge ───────────────────────────────────────────── */
+.badge-billing { cursor: pointer; min-height: 30px; font-family: var(--font-body); transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard), color var(--motion-fast) var(--ease-standard); }
+.badge-billing svg { width: 13px; height: 13px; flex-shrink: 0; }
+.badge-billing[data-billing="ok"] { --c: var(--success); }
+.badge-billing[data-billing="overdue"] { --c: var(--danger); }
+.badge-billing[data-billing="pending"] { --c: var(--muted); }
+.badge-billing { color: color-mix(in oklab, var(--c), var(--fg) 30%); border-color: color-mix(in oklab, var(--c), white 66%); background: color-mix(in oklab, var(--c), white 94%); }
+.badge-billing:hover { color: color-mix(in oklab, var(--c), var(--fg) 42%); border-color: color-mix(in oklab, var(--c), white 52%); background: color-mix(in oklab, var(--c), white 89%); }
+.badge-billing:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.inv-status { display: inline-flex; align-items: center; gap: 6px; font-size: var(--text-xs); padding: 1px var(--space-2); border: 1px solid; border-radius: var(--radius-pill); white-space: nowrap; }
+.inv-status[data-state="paid"] { --c: var(--success); }
+.inv-status[data-state="overdue"] { --c: var(--danger); }
+.inv-status[data-state="pending"] { --c: var(--muted); }
+.inv-status { color: color-mix(in oklab, var(--c), var(--fg) 30%); border-color: color-mix(in oklab, var(--c), white 66%); background: color-mix(in oklab, var(--c), white 94%); }
+.plan-name { font-weight: 500; }
+.plan-note { display: block; font-size: var(--text-xs); color: var(--muted); }
+  .user-ratio { font-variant-numeric: tabular-nums; font-size: var(--text-sm); }
+  .user-ratio b { font-weight: 500; }
+  .user-ratio span { color: var(--muted); }
+.mini-bar { height: 4px; border-radius: var(--radius-pill); background: color-mix(in oklab, var(--fg), transparent 92%); margin-top: 6px; overflow: hidden; }
+.mini-bar span { display: block; height: 100%; background: var(--fg); border-radius: var(--radius-pill); }
+.mini-bar[data-tight="true"] span { background: var(--warn); }
+.activity-cell { display: block; white-space: nowrap; font-size: var(--text-sm); }
+.activity-cell span { display: block; font-size: var(--text-xs); color: var(--muted); }
+/* checkbox */
+.check { appearance: none; -webkit-appearance: none; width: 18px; height: 18px; cursor: pointer; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); display: grid; place-items: center; transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.check:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 30%); }
+.check:checked { background: var(--accent); border-color: var(--accent); }
+.check:checked::after { content: ""; width: 10px; height: 6px; border-left: 2px solid var(--accent-on); border-bottom: 2px solid var(--accent-on); transform: rotate(-45deg) translateY(-1px); }
+.check:indeterminate { background: var(--accent); border-color: var(--accent); }
+.check:indeterminate::after { content: ""; width: 10px; height: 2px; background: var(--accent-on); }
+.check:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* empty state */
+.empty { padding: var(--space-12) var(--space-6); text-align: center; }
+.empty h3 { font-size: var(--text-lg); margin-bottom: var(--space-2); }
+.empty p { color: var(--muted); font-size: var(--text-sm); margin-bottom: var(--space-4); }
+/* pagination */
+.table-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); padding: var(--space-3) var(--space-4); border-top: 1px solid var(--border); flex-wrap: wrap; }
+.table-foot .range { font-size: var(--text-xs); color: var(--muted); }
+.foot-right { display: flex; align-items: center; gap: var(--space-4); }
+.foot-size select { min-width: 104px; padding-top: 6px; padding-bottom: 6px; }
+.pager { display: flex; align-items: center; gap: var(--space-1); }
+.page-btn { min-width: 32px; height: 32px; padding: 0 var(--space-2); display: grid; place-items: center; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-xs); color: var(--fg); cursor: pointer; transition: background var(--motion-fast) var(--ease-standard), border-color var(--motion-fast) var(--ease-standard); }
+.page-btn:hover:not(:disabled) { background: color-mix(in oklab, var(--fg), transparent 94%); }
+.page-btn:disabled { color: color-mix(in oklab, var(--muted), transparent 45%); cursor: not-allowed; }
+.page-btn[aria-current="true"] { background: var(--fg); border-color: var(--fg); color: var(--accent-on); }
+.page-btn svg { width: 14px; height: 14px; }
+/* ── Bulk bar ──────────────────────────────────────────────────── */
+.bulk { position: fixed; left: 50%; bottom: var(--space-6); transform: translateX(-50%) translateY(140%); display: flex; align-items: center; gap: var(--space-3); padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--elev-raised); z-index: 40; transition: transform var(--motion-base) var(--ease-standard); }
+.bulk[data-show="true"] { transform: translateX(-50%) translateY(0); }
+.bulk b { font-weight: 500; font-size: var(--text-sm); white-space: nowrap; }
+.bulk .bulk-actions { display: flex; align-items: center; gap: var(--space-2); }
+/* ── Row menu ──────────────────────────────────────────────────── */
+.menu { position: absolute; z-index: 60; min-width: 232px; padding: var(--space-1); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--elev-raised); display: none; }
+.menu[data-show="true"] { display: block; }
+.menu button { display: flex; align-items: center; gap: var(--space-3); width: 100%; text-align: left; padding: var(--space-2) var(--space-3); border: none; background: transparent; border-radius: var(--radius-sm); font-size: var(--text-sm); color: var(--fg); cursor: pointer; transition: background var(--motion-fast) var(--ease-standard); }
+.menu button:hover { background: color-mix(in oklab, var(--fg), transparent 94%); }
+.menu button:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.menu button svg { width: 16px; height: 16px; color: var(--muted); flex-shrink: 0; }
+.menu button.danger { color: color-mix(in oklab, var(--danger), var(--fg) 25%); }
+.menu button.danger svg { color: var(--danger); }
+.menu hr { border: none; border-top: 1px solid var(--border); margin: var(--space-1) 0; }
+.menu .menu-hint { display: block; font-size: var(--text-xs); color: var(--muted); padding: var(--space-1) var(--space-3) var(--space-2); }
+/* ── Drawer ────────────────────────────────────────────────────── */
+.scrim { position: fixed; inset: 0; background: color-mix(in oklab, var(--fg), transparent 55%); z-index: 50; opacity: 0; visibility: hidden; transition: opacity var(--motion-base) var(--ease-standard), visibility var(--motion-base); }
+.scrim[data-show="true"] { opacity: 1; visibility: visible; }
+.drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 480px; max-width: 100%; background: var(--surface); border-left: 1px solid var(--border); z-index: 60; display: flex; flex-direction: column; transform: translateX(100%); transition: transform var(--motion-base) var(--ease-standard); }
+.drawer[data-show="true"] { transform: translateX(0); }
+.drawer-head { padding: var(--space-5) var(--space-6); border-bottom: 1px solid var(--border); display: flex; gap: var(--space-3); align-items: flex-start; }
+.drawer-head h2 { font-size: var(--text-lg); line-height: 1.3; }
+.drawer-head p { font-size: var(--text-xs); color: var(--muted); font-family: var(--font-mono); margin-top: 2px; word-break: break-all; }
+.drawer-body { flex: 1; overflow-y: auto; padding: var(--space-5) var(--space-6); }
+.drawer-foot { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: var(--space-2); }
+.drawer-section + .drawer-section { margin-top: var(--space-6); }
+.drawer-section > h3 { font-size: var(--text-sm); margin-bottom: var(--space-3); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4) var(--space-6); }
+.detail-grid dt { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.detail-grid dd { font-size: var(--text-sm); }
+.detail-grid dd.mono { font-family: var(--font-mono); font-size: var(--text-xs); word-break: break-all; }
+.detail-grid .span-2 { grid-column: 1 / -1; }
+.timeline { border-left: 1px solid var(--border); margin-left: 5px; }
+.timeline li { position: relative; padding: 0 0 var(--space-4) var(--space-4); }
+.timeline li:last-child { padding-bottom: 0; }
+.timeline li::before { content: ""; position: absolute; left: -5px; top: 6px; width: 8px; height: 8px; border-radius: var(--radius-pill); background: var(--surface); border: 2px solid var(--fg); }
+.timeline b { display: block; font-size: var(--text-sm); font-weight: 500; }
+.timeline span { font-size: var(--text-xs); color: var(--muted); }
+.note-box { display: flex; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid color-mix(in oklab, var(--warn), white 62%); background: color-mix(in oklab, var(--warn), white 94%); border-radius: var(--radius-sm); font-size: var(--text-xs); color: var(--fg); }
+.note-box svg { width: 16px; height: 16px; color: color-mix(in oklab, var(--warn), var(--fg) 25%); flex-shrink: 0; margin-top: 1px; }
+.note-box b { display: block; font-weight: 600; margin-bottom: 2px; }
+/* ── Modal ─────────────────────────────────────────────────────── */
+.modal-wrap { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: var(--space-4); }
+.modal { width: 100%; max-width: 480px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--elev-raised); overflow: hidden; animation: modal-in var(--motion-base) var(--ease-standard); }
+.modal--wide { max-width: 540px; }
+.modal--invoice { max-width: 620px; }
+@keyframes modal-in { from { opacity: 0; transform: translateY(8px) scale(0.99); } }
+.modal-head { padding: var(--space-5) var(--space-6) 0; }
+.modal-head h2 { font-size: var(--text-xl); margin-bottom: var(--space-2); }
+.modal-head p { font-size: var(--text-sm); color: var(--muted); }
+.modal-body { padding: var(--space-5) var(--space-6); }
+.modal-foot { padding: var(--space-4) var(--space-6); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: var(--space-2); }
+.field { margin-bottom: var(--space-4); }
+.field > label { display: block; font-size: var(--text-sm); font-weight: 500; margin-bottom: var(--space-2); }
+.field input, .field select, .field textarea { width: 100%; padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: var(--text-sm); transition: border-color var(--motion-fast) var(--ease-standard), box-shadow var(--motion-fast) var(--ease-standard); }
+.field textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
+.field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+.field input:hover, .field textarea:hover, .field select:hover { border-color: color-mix(in oklab, var(--border), var(--fg) 24%); }
+.field input:focus-visible, .field textarea:focus-visible, .field select:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+.field .help { margin-top: var(--space-2); font-size: var(--text-xs); color: var(--muted); }
+.field-error { display: none; margin-top: var(--space-2); font-size: var(--text-xs); color: var(--danger); }
+.field[data-invalid="true"] input, .field[data-invalid="true"] select { border-color: var(--danger); }
+.field[data-invalid="true"] .field-error { display: block; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.checkbox-line { display: flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); cursor: pointer; }
+/* ── Invoice history ───────────────────────────────────────────── */
+.inv-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-4); padding: var(--space-4); margin-bottom: var(--space-4); border: 1px solid var(--border); border-radius: var(--radius-sm); background: color-mix(in oklab, var(--fg), transparent 96%); }
+.inv-summary dt { font-size: var(--text-xs); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+.inv-summary dd { font-size: var(--text-sm); font-weight: 500; }
+.inv-summary dd.danger { color: color-mix(in oklab, var(--danger), var(--fg) 25%); }
+.inv-list { display: flex; flex-direction: column; }
+.inv-row { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-3) 0; border-bottom: 1px solid var(--border-soft); }
+.inv-row:last-child { border-bottom: none; }
+.inv-main { min-width: 0; flex: 1; }
+.inv-main b { display: block; font-size: var(--text-sm); font-weight: 500; font-family: var(--font-mono); }
+.inv-main span { display: block; font-size: var(--text-xs); color: var(--muted); }
+.inv-side { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.inv-amount { font-size: var(--text-sm); font-weight: 500; font-variant-numeric: tabular-nums; }
+.inv-empty { font-size: var(--text-sm); color: var(--muted); text-align: center; padding: var(--space-6) 0; }
+.note-box[data-tone="danger"] { border-color: color-mix(in oklab, var(--danger), white 62%); background: color-mix(in oklab, var(--danger), white 95%); }
+.note-box[data-tone="danger"] svg { color: color-mix(in oklab, var(--danger), var(--fg) 25%); }
+/* ── Toasts ────────────────────────────────────────────────────── */
+.toasts { position: fixed; right: var(--space-6); bottom: var(--space-6); z-index: 80; display: flex; flex-direction: column; gap: var(--space-2); }
+body[data-bulk="true"] .content { padding-bottom: 136px; }
+body[data-bulk="true"] .toasts { bottom: 104px; }
+.toast { display: flex; align-items: flex-start; gap: var(--space-3); min-width: 280px; max-width: 360px; padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--elev-raised); animation: toast-in var(--motion-base) var(--ease-standard); }
+@keyframes toast-in { from { opacity: 0; transform: translateY(6px); } }
+.toast svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--success); margin-top: 1px; }
+.toast[data-tone="warn"] svg { color: var(--warn); }
+.toast b { display: block; font-size: var(--text-sm); font-weight: 500; }
+.toast span { font-size: var(--text-xs); color: var(--muted); }
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: fixed; top: 0; left: 0; bottom: 0; width: 272px; z-index: 65; transform: translateX(-100%); transition: transform var(--motion-base) var(--ease-standard); box-shadow: var(--elev-raised); }
+  .sidebar[data-show="true"] { transform: translateX(0); }
+  .menu-btn { display: grid; }
+  .content { padding: var(--space-6) var(--container-gutter-phone) var(--space-12); }
+  .col-domain, .col-activity, .col-users { display: none; }
+  table { min-width: 760px; }
+}
+@media (max-width: 560px) {
+  .stats { grid-template-columns: 1fr; }
+  .page-head h1 { font-size: var(--text-xl); }
+  .topbar { padding: 0 var(--space-4); gap: var(--space-2); }
+  .crumbs .sep, .crumbs .current { display: none; }
+  .icon-btn { width: 44px; height: 44px; }
+  .page-actions { width: 100%; }
+  .page-actions .btn-primary { flex: 1; min-height: 44px; }
+  .bulk { left: var(--space-4); right: var(--space-4); transform: translateY(140%); flex-wrap: wrap; }
+  .bulk[data-show="true"] { transform: translateY(0); }
+  .toasts { left: var(--space-4); right: var(--space-4); }
+  .toast { min-width: 0; max-width: none; }
+  .col-users, .col-plan, .col-billing { display: none; }
+  .cell-tenant { min-width: 0; }
+  .col-status { width: 96px; }
+  .badge-billing { min-height: 44px; }
+  .inv-summary { grid-template-columns: 1fr; gap: var(--space-3); }
+  table { min-width: 0; }
+  .detail-grid { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+  .search-field { max-width: none; }
+}
+</style>
+</head>
+<body data-od-root>
+<div class="app" data-od-id="app-shell">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar" data-od-id="sidebar">
+    <div class="brand">
+      <span class="logo-dot" aria-hidden="true"></span>
+      <span class="brand-name">Atrium</span>
+      <span class="brand-tag">Console</span>
+    </div>
+
+    <button type="button" class="org-switch" data-od-id="org-switch" aria-label="Changer d'organisation">
+      <span class="org-glyph" aria-hidden="true">SN</span>
+      <span class="org-info">
+        <span class="org-name">Studio Nord</span>
+        <span class="org-domain">studio-nord.atrium.app</span>
+      </span>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="8 9 12 13 16 9"/></svg>
+    </button>
+
+    <nav aria-label="Navigation principale">
+      <div class="nav-group">
+        <p class="nav-label">Plateforme</p>
+        <ul>
+          <li><a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>Vue d'ensemble</a></li>
+          <li><a class="nav-item" href="tenants.html" aria-current="page" data-od-id="nav-tenants"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V7l9-4 9 4v14"/><path d="M9 21v-6h6v6"/></svg>Clients<span class="count" id="navTenantsCount">28</span></a></li>
+          <li><a class="nav-item" href="utilisateurs.html" data-od-id="nav-utilisateurs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg>Utilisateurs<span class="count" id="navUsersCount">17</span></a></li>
+          <li><a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Facturation</a></li>
+        </ul>
+      </div>
+      <div class="nav-group">
+        <p class="nav-label">Administration</p>
+        <ul>
+          <li><a class="nav-item" href="#" data-od-id="nav-roles"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Rôles et droits</a></li>
+          <li><a class="nav-item" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>Journal d'audit</a></li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="account">
+        <span class="avatar" aria-hidden="true">LM</span>
+        <span class="who"><b>Laure Moreau</b><span>Propriétaire</span></span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <!-- ── Topbar ────────────────────────────────────────────── -->
+    <header class="topbar" data-od-id="topbar">
+      <button type="button" class="icon-btn menu-btn" id="menuBtn" aria-label="Ouvrir le menu" data-od-id="menu-toggle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <nav class="crumbs" aria-label="Fil d'Ariane">
+        <span class="org-chip"><span class="glyph" aria-hidden="true">SN</span>Studio Nord</span>
+        <span class="sep">/</span>
+        <span class="current">Clients</span>
+      </nav>
+      <div class="topbar-actions">
+        <button type="button" class="icon-btn" aria-label="Notifications" data-od-id="notif-button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="dot" aria-hidden="true"></span>
+        </button>
+        <span class="topbar-avatar" aria-hidden="true">LM</span>
+      </div>
+    </header>
+
+    <!-- ── Content ──────────────────────────────────────────── -->
+    <main class="content" data-od-id="content">
+      <header class="page-head">
+        <div>
+          <h1 data-od-id="page-title">Gestion des clients</h1>
+          <p>Liste de tous les clients de la plateforme, leur abonnement et leur niveau d'utilisation.</p>
+        </div>
+        <div class="page-actions">
+          <button type="button" class="btn-primary" id="createTenantBtn" data-od-id="create-tenant-button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V7l9-4 9 4v14"/><path d="M9 21v-6h6v6"/></svg>
+            <span>Créer un tenant</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="stats" data-od-id="stats-row">
+        <article class="stat" data-od-id="stat-card-tenants">
+          <span class="stat-label">Clients</span>
+          <span class="stat-value" id="statTotal">28</span>
+          <span class="stat-note"><b id="statActive">21</b> actifs · <b id="statPaused">4</b> en pause · <b id="statBanned">3</b> bannis</span>
+        </article>
+        <article class="stat" data-od-id="stat-card-users">
+          <span class="stat-label">Utilisateurs actifs</span>
+          <span class="stat-value"><span id="statUsersUsed">0</span> / <span id="statUsersTotal">0</span></span>
+          <div class="user-bar" role="img" aria-label="Utilisateurs actifs sur le total autorisé"><span id="userFill" style="width:0%"></span></div>
+        </article>
+        <article class="stat" data-od-id="stat-card-enterprise">
+          <span class="stat-label">Plans Enterprise</span>
+          <span class="stat-value" id="statEnterprise">7</span>
+          <span class="stat-note"><b id="statEnterprisePct">25</b> % du parc clients</span>
+        </article>
+        <article class="stat" data-od-id="stat-card-quota">
+          <span class="stat-label">Quota proche</span>
+          <span class="stat-value" id="statQuota">5</span>
+          <span class="stat-note">Clients à <b>90 %</b> de leur limite d'utilisateurs</span>
+        </article>
+      </section>
+
+      <section class="panel" data-od-id="tenants-panel">
+        <div class="toolbar" data-od-id="toolbar">
+          <div class="search-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="searchInput" placeholder="Rechercher par nom, domaine ou email..." aria-label="Rechercher par nom, domaine ou e-mail" data-od-id="search-input" />
+          </div>
+          <div class="select-wrap">
+            <select id="statusFilter" aria-label="Filtrer par statut" data-od-id="status-filter">
+              <option value="all">Tous les statuts</option>
+              <option value="active">Actif</option>
+              <option value="paused">En pause</option>
+              <option value="banned">Banni</option>
+            </select>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="select-wrap">
+            <select id="planFilter" aria-label="Filtrer par plan" data-od-id="plan-filter">
+              <option value="all">Tous les plans</option>
+              <option value="free">Free</option>
+              <option value="pro">Pro</option>
+              <option value="enterprise">Enterprise</option>
+            </select>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="date-field">
+            <span id="dateLabel">Créé depuis</span>
+            <input type="date" id="dateFilter" aria-labelledby="dateLabel" data-od-id="date-filter" />
+          </div>
+          <button type="button" class="btn-secondary" id="resetFilters" data-od-id="reset-filters">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><polyline points="3 3 3 8 8 8"/></svg>
+            <span>Réinitialiser</span>
+          </button>
+          <span class="toolbar-note" id="toolbarNote">28 clients</span>
+        </div>
+
+        <div class="table-wrap" id="tableWrap">
+          <table data-od-id="tenants-table">
+            <caption style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Liste des clients de la plateforme Atrium</caption>
+            <thead>
+              <tr>
+                <th scope="col" class="cell-check">
+                  <input type="checkbox" class="check" id="checkAll" aria-label="Sélectionner tous les clients affichés" data-od-id="select-all" />
+                </th>
+                <th scope="col" class="sortable" data-sort="name">
+                  <button type="button" data-od-id="sort-name">
+                    Identité
+                    <svg class="sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </th>
+                <th scope="col" class="col-domain">Domaine principal</th>
+                <th scope="col" class="col-status">Statut</th>
+                <th scope="col" class="col-billing" data-od-id="col-billing">Statut de facturation</th>
+                <th scope="col" class="col-plan">Plan</th>
+                <th scope="col" class="sortable col-users" data-sort="users">
+                  <button type="button" data-od-id="sort-users">
+                    Utilisateurs
+                    <svg class="sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </th>
+                <th scope="col" class="sortable col-activity" data-sort="activity" aria-sort="descending">
+                  <button type="button" data-od-id="sort-activity">
+                    Dernière activité
+                    <svg class="sort-ind" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                  </button>
+                </th>
+                <th scope="col" class="col-actions"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody id="tenantsBody"></tbody>
+          </table>
+        </div>
+
+        <div class="empty" id="emptyState" hidden data-od-id="empty-state">
+          <h3>Aucun client ne correspond</h3>
+          <p>Modifiez votre recherche ou réinitialisez les filtres pour retrouver vos clients.</p>
+          <button type="button" class="btn-secondary" id="resetFiltersEmpty" data-od-id="reset-filters-empty">Réinitialiser les filtres</button>
+        </div>
+
+        <div class="table-foot">
+          <span class="range" id="rangeLabel" data-od-id="pagination-range">1–10 sur 28 clients</span>
+          <div class="foot-right">
+            <div class="select-wrap foot-size">
+              <select id="pageSize" aria-label="Nombre de clients par page" data-od-id="page-size">
+                <option value="10">10 / page</option>
+                <option value="25">25 / page</option>
+                <option value="50">50 / page</option>
+              </select>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="pager" id="pager" data-od-id="pagination"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ── Row action menu ──────────────────────────────────────────── -->
+<div class="menu" id="rowMenu" role="menu" data-od-id="row-menu">
+  <button type="button" role="menuitem" data-action="view" data-od-id="menu-view">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+    Voir les détails
+  </button>
+  <button type="button" role="menuitem" data-action="edit" data-od-id="menu-edit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+    Éditer le tenant
+  </button>
+  <hr />
+  <button type="button" role="menuitem" data-action="toggle" data-od-id="menu-toggle-status">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <span id="toggleStatusLabel">Suspendre le tenant</span>
+  </button>
+  <button type="button" role="menuitem" data-action="impersonate" data-od-id="menu-impersonate">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M16 11h6"/></svg>
+    Se connecter en tant que
+  </button>
+  <p class="menu-hint">L'impersonation est journalisée.</p>
+</div>
+
+<!-- ── Bulk bar ─────────────────────────────────────────────────── -->
+<div class="bulk" id="bulkBar" data-show="false" data-od-id="bulk-bar">
+  <b id="bulkCount">0 sélectionnés</b>
+  <div class="bulk-actions">
+    <button type="button" class="btn-secondary" id="bulkActivate" data-od-id="bulk-activate">Activer</button>
+    <button type="button" class="btn-secondary" id="bulkSuspend" data-od-id="bulk-suspend">Suspendre</button>
+    <button type="button" class="btn-secondary" id="bulkClear" data-od-id="bulk-clear">Annuler</button>
+  </div>
+</div>
+
+<!-- ── Tenant drawer ────────────────────────────────────────────── -->
+<div class="scrim" id="scrim" data-show="false"></div>
+<aside class="drawer" id="drawer" data-show="false" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" data-od-id="tenant-drawer">
+  <div class="drawer-head">
+    <span class="logo-tile logo-tile--lg" id="drawerLogo" aria-hidden="true">NS</span>
+    <div style="flex:1;min-width:0">
+      <h2 id="drawerTitle">Northwind Studio</h2>
+      <p id="drawerDomain">northwind.atrium.app</p>
+    </div>
+    <button type="button" class="icon-btn" id="drawerClose" aria-label="Fermer la fiche client" data-od-id="drawer-close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <div class="drawer-section">
+      <h3>Informations</h3>
+      <dl class="detail-grid">
+        <div><dt>Statut</dt><dd id="drawerStatus"></dd></div>
+        <div><dt>Plan</dt><dd id="drawerPlan"></dd></div>
+        <div><dt>Utilisateurs</dt><dd id="drawerUsers"></dd></div>
+        <div><dt>Créé le</dt><dd id="drawerCreated"></dd></div>
+        <div class="span-2"><dt>E-mail administrateur</dt><dd class="mono" id="drawerEmail"></dd></div>
+        <div class="span-2"><dt>Domaine principal</dt><dd class="mono" id="drawerDomainFull"></dd></div>
+        <div class="span-2"><dt>Facturation</dt><dd id="drawerBilling"></dd></div>
+      </dl>
+    </div>
+    <div class="drawer-section">
+      <h3>Activité récente</h3>
+      <ol class="timeline" id="drawerTimeline"></ol>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button type="button" class="btn-secondary" id="drawerCloseBtn" data-od-id="drawer-cancel">Fermer</button>
+    <button type="button" class="btn-primary" id="drawerEdit" data-od-id="drawer-edit">Modifier le client</button>
+  </div>
+</aside>
+
+<!-- ── Tenant form modal ────────────────────────────────────────── -->
+<div class="modal-wrap" id="modalWrap" hidden>
+  <div class="scrim" id="modalScrim" data-show="true"></div>
+  <div class="modal modal--wide" role="dialog" aria-modal="true" aria-labelledby="modalTitle" data-od-id="tenant-modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Créer un tenant</h2>
+      <p id="modalSubtitle">Le client sera provisionné avec son sous-domaine et son plan d'abonnement.</p>
+    </div>
+    <div class="modal-body">
+      <form id="tenantForm" novalidate>
+        <div class="field" id="fieldName" data-od-id="tenant-field-name">
+          <label for="tenantName">Nom de l'entreprise</label>
+          <input type="text" id="tenantName" name="tenantName" placeholder="Northwind Studio" autocomplete="organization" required />
+          <p class="field-error">Saisissez le nom de l'entreprise.</p>
+        </div>
+        <div class="field" id="fieldDomain" data-od-id="tenant-field-domain">
+          <label for="tenantDomain">Domaine principal</label>
+          <input type="text" id="tenantDomain" name="tenantDomain" placeholder="northwind.atrium.app" autocomplete="off" required />
+          <p class="help">Sous-domaine <span style="font-family:var(--font-mono)">*.atrium.app</span> ou domaine personnalisé.</p>
+          <p class="field-error">Saisissez un domaine valide (lettres, chiffres, points et tirets).</p>
+        </div>
+        <div class="field-row">
+          <div class="field" id="fieldPlan" data-od-id="tenant-field-plan">
+            <label for="tenantPlan">Plan</label>
+            <div class="select-wrap" style="display:flex">
+              <select id="tenantPlan" name="tenantPlan">
+                <option value="free">Free</option>
+                <option value="pro" selected>Pro</option>
+                <option value="enterprise">Enterprise</option>
+              </select>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <p class="help" id="tenantPlanHelp">25 utilisateurs inclus, support prioritaire.</p>
+          </div>
+          <div class="field" id="fieldUsers" data-od-id="tenant-field-users">
+            <label for="tenantUsers">Utilisateurs maximum</label>
+            <input type="number" id="tenantUsers" name="tenantUsers" min="1" max="500" step="1" value="25" />
+            <p class="field-error">Indiquez une limite comprise entre 1 et 500.</p>
+          </div>
+        </div>
+        <div class="field" id="fieldEmail" data-od-id="tenant-field-email">
+          <label for="tenantEmail">E-mail administrateur</label>
+          <input type="email" id="tenantEmail" name="tenantEmail" placeholder="contact@entreprise.fr" autocomplete="off" required />
+          <p class="field-error">Saisissez une adresse e-mail valide.</p>
+        </div>
+      </form>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn-secondary" id="tenantCancel" data-od-id="tenant-cancel">Annuler</button>
+      <button type="submit" class="btn-primary" id="tenantSubmit" form="tenantForm" data-od-id="tenant-submit">
+        <span class="spinner" aria-hidden="true"></span>
+        <span id="tenantSubmitLabel">Créer le tenant</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Impersonation modal ──────────────────────────────────────── -->
+<div class="modal-wrap" id="impersonateWrap" hidden>
+  <div class="scrim" id="impersonateScrim" data-show="true"></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="impersonateTitle" data-od-id="impersonate-modal">
+    <div class="modal-head">
+      <h2 id="impersonateTitle">Se connecter en tant que</h2>
+      <p id="impersonateSubtitle">Vous allez ouvrir une session avec les droits de ce client.</p>
+    </div>
+    <div class="modal-body">
+      <div class="note-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <b>Action journalisée</b>
+          <span>La session est enregistrée au nom de l'administrateur et expire automatiquement au bout de 30 minutes. Les données du client restent inchangées.</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn-secondary" id="impersonateCancel" data-od-id="impersonate-cancel">Annuler</button>
+      <button type="button" class="btn-primary" id="impersonateConfirm" data-od-id="impersonate-confirm">Ouvrir la session</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Invoice history modal ──────────────────────────────────────── -->
+<div class="modal-wrap" id="invoiceWrap" hidden>
+  <div class="scrim" id="invoiceScrim" data-show="true"></div>
+  <div class="modal modal--invoice" role="dialog" aria-modal="true" aria-labelledby="invoiceTitle" data-od-id="invoice-modal">
+    <div class="modal-head">
+      <h2 id="invoiceTitle">Historique des factures</h2>
+      <p id="invoiceSubtitle">Northwind Studio · plan Pro</p>
+    </div>
+    <div class="modal-body">
+      <dl class="inv-summary" id="invoiceSummary" data-od-id="invoice-summary"></dl>
+      <div id="invoiceNotice"></div>
+      <ol class="inv-list" id="invoiceList" data-od-id="invoice-list"></ol>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn-secondary" id="invoiceClose" data-od-id="invoice-close">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite" data-od-id="toasts"></div>
+
+<script>
+(function () {
+  "use strict";
+  /* ── Data ─────────────────────────────────────────────────── */
+  var DEMO_NOW = new Date(2026, 1, 18, 10, 24, 0);
+  var STATUS = {
+    active: { label: "Actif" },
+    paused: { label: "En pause" },
+    banned: { label: "Banni" }
+  };
+  var PLANS = {
+    free: { label: "Free", users: 5, note: "5 utilisateurs, support par e-mail." },
+    pro: { label: "Pro", users: 25, note: "25 utilisateurs, support prioritaire." },
+    enterprise: { label: "Enterprise", users: 100, note: "100 utilisateurs, SLA dédié." }
+  };
+  /* Facturation — état de la dette par client.
+     ok = aucune facture impayée · pending = facture émise non payée ·
+     overdue = factures en retard (unpaid = nombre de factures en retard). */
+  var BILLING = {
+    t1: { state: "ok" }, t2: { state: "ok" }, t3: { state: "pending" },
+    t4: { state: "overdue", unpaid: 2 }, t5: { state: "ok" },
+    t6: { state: "ok" }, t7: { state: "ok" }, t8: { state: "ok" },
+    t9: { state: "pending" }, t10: { state: "ok" }, t11: { state: "ok" },
+    t12: { state: "ok" }, t13: { state: "ok" }, t14: { state: "overdue", unpaid: 3 },
+    t15: { state: "ok" }, t16: { state: "overdue", unpaid: 2 }, t17: { state: "overdue", unpaid: 1 },
+    t18: { state: "ok" }, t19: { state: "ok" }, t20: { state: "pending" },
+    t21: { state: "overdue", unpaid: 2 }, t22: { state: "ok" }, t23: { state: "ok" },
+    t24: { state: "ok" }, t25: { state: "pending" }, t26: { state: "ok" },
+    t27: { state: "pending" }, t28: { state: "ok" }
+  };
+  var PLAN_PRICE = { free: 0, pro: 39, enterprise: 149 };
+  var BILLING_LABEL = { ok: "À jour", overdue: "Impayé", pending: "En attente" };
+  var BILLING_ICON = {
+    ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>',
+    overdue: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    pending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>'
+  };
+  var TENANTS = [
+    { id: "t1",  name: "Northwind Studio",        domain: "northwind.atrium.app",       custom: false, status: "active", plan: "pro",       used: 18, limit: 25,  email: "h.lefevre@northwind.fr",        created: "2024-02-12", ago: 2 },
+    { id: "t2",  name: "Atelier Lumen",           domain: "atelier-lumen.atrium.app",   custom: false, status: "active", plan: "enterprise", used: 84, limit: 100, email: "direction@lumen-atelier.fr",   created: "2023-09-04", ago: 0.03 },
+    { id: "t3",  name: "Maison Bertrand",         domain: "maisonbertrand.fr",          custom: true,  status: "active", plan: "pro",       used: 22, limit: 25,  email: "contact@maisonbertrand.fr",     created: "2024-06-21", ago: 0.6 },
+    { id: "t4",  name: "Greenline Logistics",     domain: "greenline.atrium.app",       custom: false, status: "paused", plan: "pro",       used: 9,  limit: 25,  email: "ops@greenline-log.fr",          created: "2024-01-08", ago: 72 },
+    { id: "t5",  name: "Cabinet Roux & Fils",     domain: "cabinet-roux.fr",            custom: true,  status: "active", plan: "free",      used: 4,  limit: 5,   email: "bonjour@cabinet-roux.fr",        created: "2025-01-15", ago: 0.2 },
+    { id: "t6",  name: "Pixel Foundry",           domain: "pixelfoundry.atrium.app",    custom: false, status: "active", plan: "pro",       used: 25, limit: 25,  email: "team@pixelfoundry.io",          created: "2024-11-03", ago: 5 },
+    { id: "t7",  name: "Terra Nova Coop",         domain: "terranova.coop",             custom: true,  status: "active", plan: "enterprise", used: 61, limit: 100, email: "contact@terranova.coop",        created: "2023-04-17", ago: 17 },
+    { id: "t8",  name: "Studio Marceau",          domain: "studiomarqueau.atrium.app",  custom: false, status: "banned", plan: "free",      used: 2,  limit: 5,   email: "hello@studiomarqueau.fr",       created: "2025-03-09", ago: 1440 },
+    { id: "t9",  name: "Helio Energy",            domain: "helio.energy",               custom: true,  status: "active", plan: "enterprise", used: 88, limit: 100, email: "admin@helio.energy",            created: "2023-06-27", ago: 1 },
+    { id: "t10", name: "Lumen Conseil",           domain: "lumenconseil.atrium.app",    custom: false, status: "active", plan: "pro",       used: 11, limit: 25,  email: "contact@lumenconseil.fr",       created: "2024-08-19", ago: 0.35 },
+    { id: "t11", name: "Petit Moulin",            domain: "petitmoulin.fr",             custom: true,  status: "paused", plan: "free",      used: 3,  limit: 5,   email: "contact@petitmoulin.fr",         created: "2025-05-22", ago: 144 },
+    { id: "t12", name: "Vela Digital",            domain: "vela.digital",               custom: true,  status: "active", plan: "pro",       used: 16, limit: 25,  email: "hello@vela.digital",             created: "2024-04-02", ago: 48 },
+    { id: "t13", name: "Ombres & Lumières",       domain: "ombres-lumieres.atrium.app", custom: false, status: "active", plan: "free",      used: 1,  limit: 5,   email: "studio@ombres-lumieres.fr",    created: "2025-07-11", ago: 96 },
+    { id: "t14", name: "Krauss Industries",       domain: "krauss-industries.de",       custom: true,  status: "active", plan: "enterprise", used: 95, limit: 100, email: "it@krauss-industries.de",       created: "2023-11-30", ago: 0.05 },
+    { id: "t15", name: "Basis Partners",          domain: "basispartners.atrium.app",   custom: false, status: "active", plan: "pro",       used: 7,  limit: 25,  email: "contact@basispartners.com",     created: "2024-10-14", ago: 3 },
+    { id: "t16", name: "Rivage Immobilier",       domain: "rivage-immobilier.fr",       custom: true,  status: "paused", plan: "pro",       used: 13, limit: 25,  email: "contact@rivage-immobilier.fr",  created: "2024-03-25", ago: 216 },
+    { id: "t17", name: "Studio Ondine",           domain: "studioondine.atrium.app",    custom: false, status: "banned", plan: "pro",       used: 6,  limit: 25,  email: "contact@studioondine.fr",       created: "2024-12-05", ago: 504 },
+    { id: "t18", name: "Coopérative Val-de-Loire", domain: "cvc-valdeloire.fr",         custom: true,  status: "active", plan: "enterprise", used: 47, limit: 100, email: "contact@cvc-valdeloire.fr",      created: "2023-08-11", ago: 15.5 },
+    { id: "t19", name: "Marbrerie Jourdan",       domain: "marbrerie-jourdan.atrium.app", custom: false, status: "active", plan: "free",    used: 3,  limit: 5,   email: "contact@marbrerie-jourdan.fr",  created: "2025-09-28", ago: 120 },
+    { id: "t20", name: "Neo Atlas",               domain: "neoatlas.io",                custom: true,  status: "active", plan: "pro",       used: 19, limit: 25,  email: "bonjour@neoatlas.io",            created: "2024-05-16", ago: 0.75 },
+    { id: "t21", name: "Clinique des Ormes",      domain: "clinique-des-ormes.fr",      custom: true,  status: "active", plan: "pro",       used: 24, limit: 25,  email: "admin@clinique-des-ormes.fr",   created: "2024-07-30", ago: 2 },
+    { id: "t22", name: "Fabrique Lumen & Co",     domain: "fabrique-lumen.atrium.app",  custom: false, status: "active", plan: "free",      used: 2,  limit: 5,   email: "hello@fabrique-lumen.fr",       created: "2025-11-04", ago: 7 },
+    { id: "t23", name: "Aquila Media",            domain: "aquilamedia.tv",              custom: true,  status: "active", plan: "enterprise", used: 72, limit: 100, email: "contact@aquilamedia.tv",        created: "2023-02-19", ago: 0.5 },
+    { id: "t24", name: "Institut Percheron",      domain: "institut-percheron.fr",      custom: true,  status: "banned", plan: "free",      used: 1,  limit: 5,   email: "contact@institut-percheron.fr", created: "2025-02-08", ago: 840 },
+    { id: "t25", name: "Brume Software",          domain: "brume.software",             custom: true,  status: "active", plan: "pro",       used: 21, limit: 25,  email: "contact@brume.software",        created: "2024-09-08", ago: 2.5 },
+    { id: "t26", name: "Les Ateliers Réunis",    domain: "ateliers-reunis.atrium.app", custom: false, status: "paused", plan: "free",      used: 4,  limit: 5,   email: "contact@ateliers-reunis.fr",    created: "2025-08-19", ago: 192 },
+    { id: "t27", name: "Solaris Énergie",         domain: "solaris-energie.fr",         custom: true,  status: "active", plan: "enterprise", used: 99, limit: 100, email: "contact@solaris-energie.fr",    created: "2023-10-05", ago: 0.2 },
+    { id: "t28", name: "Petit Comptoir",          domain: "petitcomptoir.atrium.app",   custom: false, status: "active", plan: "free",      used: 1,  limit: 5,   email: "bonjour@petitcomptoir.fr",       created: "2025-12-02", ago: 24 }
+  ];
+  /* ── State ────────────────────────────────────────────────── */
+  var STORAGE_KEY = "atrium.tenants.v1";
+  var state = { query: "", status: "all", plan: "all", after: "", sort: "activity", dir: "desc", page: 1, size: 10, selected: {} };
+  var editingId = null;
+  var activeTenantId = null;
+  var scrimMode = null;
+  try {
+    var saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+    if (saved) {
+      if (saved.sort) state.sort = saved.sort === "seats" ? "users" : saved.sort;
+      if (saved.dir) state.dir = saved.dir;
+      if (saved.page) state.page = saved.page;
+      if (saved.size) state.size = saved.size;
+    }
+  } catch (e) {}
+  function persist() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ sort: state.sort, dir: state.dir, page: state.page, size: state.size }));
+    } catch (e) {}
+  }
+  /* ── Elements ─────────────────────────────────────────────── */
+  var body = document.getElementById("tenantsBody");
+  var tableWrap = document.getElementById("tableWrap");
+  var emptyState = document.getElementById("emptyState");
+  var pager = document.getElementById("pager");
+  var rangeLabel = document.getElementById("rangeLabel");
+  var toolbarNote = document.getElementById("toolbarNote");
+  var searchInput = document.getElementById("searchInput");
+  var statusFilter = document.getElementById("statusFilter");
+  var planFilter = document.getElementById("planFilter");
+  var dateFilter = document.getElementById("dateFilter");
+  var checkAll = document.getElementById("checkAll");
+  var pageSize = document.getElementById("pageSize");
+  var bulkBar = document.getElementById("bulkBar");
+  var bulkCount = document.getElementById("bulkCount");
+  var rowMenu = document.getElementById("rowMenu");
+  var drawer = document.getElementById("drawer");
+  var scrim = document.getElementById("scrim");
+  var sidebar = document.getElementById("sidebar");
+  var toasts = document.getElementById("toasts");
+  var modalWrap = document.getElementById("modalWrap");
+  var impersonateWrap = document.getElementById("impersonateWrap");
+  var tenantForm = document.getElementById("tenantForm");
+  /* ── Helpers ──────────────────────────────────────────────── */
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function initials(name) {
+    var words = name.replace(/&/g, " ").split(/\s+/).filter(function (w) { return w.length; });
+    if (!words.length) return "?";
+    if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+    return (words[0].charAt(0) + words[words.length - 1].charAt(0)).toUpperCase();
+  }
+  function tenantById(id) {
+    for (var i = 0; i < TENANTS.length; i++) { if (TENANTS[i].id === id) return TENANTS[i]; }
+    return null;
+  }
+  function activityDate(t) {
+    return new Date(DEMO_NOW.getTime() - t.ago * 3600000);
+  }
+  function relTime(t) {
+    var h = t.ago;
+    if (h < 0.08) return "À l'instant";
+    if (h < 1) return "Il y a " + Math.round(h * 60) + " min";
+    if (h < 24) return "Il y a " + Math.round(h) + " h";
+    if (h < 48) {
+      var y = new Date(DEMO_NOW.getTime() - 24 * 3600000);
+      return "Hier, " + ("0" + y.getHours()).slice(-2) + ":" + ("0" + y.getMinutes()).slice(-2);
+    }
+    if (h < 168) return "Il y a " + Math.round(h / 24) + " jours";
+    if (h < 720) return "Il y a " + Math.round(h / 168) + " semaines";
+    return "Il y a " + Math.round(h / 730) + " mois";
+  }
+  var MONTHS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+  var MONTHS_FULL = ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"];
+  function fmtDate(iso) {
+    var p = iso.split("-");
+    var d = new Date(Number(p[0]), Number(p[1]) - 1, Number(p[2]));
+    return Number(p[2]) + " " + MONTHS[Number(p[1]) - 1] + " " + p[0];
+  }
+  function fmtDateTime(t) {
+    var d = activityDate(t);
+    return fmtDate(t.created) + " · " + ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2);
+  }
+  function selectedIds() { return Object.keys(state.selected).filter(function (id) { return state.selected[id]; }); }
+  function clearSelection() { state.selected = {}; }
+  function userPct(t) { return Math.min(100, Math.round((t.used / t.limit) * 100)); }
+  function isTight(t) { return t.limit > 0 && t.used / t.limit >= 0.9; }
+  /* ── Billing helpers ───────────────────────────────────────── */
+  function billingOf(t) {
+    return BILLING[t.id] || { state: "ok", unpaid: 0 };
+  }
+  function euro(n) {
+    return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);
+  }
+  function pad4(n) {
+    var s = String(n);
+    while (s.length < 4) s = "0" + s;
+    return s;
+  }
+  function isoOf(d) {
+    return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2);
+  }
+  function fmtFull(d) { return fmtDate(isoOf(d)); }
+  function invoicesFor(t) {
+    var b = billingOf(t);
+    var price = PLAN_PRICE[t.plan] || 0;
+    var out = [];
+    if (!price) return out;
+    var base = new Date(DEMO_NOW.getFullYear(), DEMO_NOW.getMonth(), 1);
+    var seq = (parseInt(String(t.id).replace(/\D/g, ""), 10) || 0) % 700;
+    for (var i = 0; i < 6; i++) {
+      var issue = new Date(base.getFullYear(), base.getMonth() - i, 1);
+      var state;
+      if (b.state === "overdue") {
+        if (i === 0) continue;
+        state = i <= (b.unpaid || 1) ? "overdue" : "paid";
+      } else if (b.state === "pending" && i === 0) {
+        state = "pending";
+      } else {
+        state = "paid";
+      }
+      out.push({
+        num: "FA-" + issue.getFullYear() + "-" + pad4(4100 + seq * 13 + (5 - i)),
+        period: MONTHS_FULL[issue.getMonth()] + " " + issue.getFullYear(),
+        issued: issue,
+        due: new Date(issue.getTime() + 30 * 86400000),
+        paidAt: state === "paid" ? new Date(issue.getTime() + 2 * 86400000) : null,
+        amount: price,
+        state: state
+      });
+    }
+    return out;
+  }
+  function unpaidInvoices(t) {
+    return invoicesFor(t).filter(function (f) { return f.state !== "paid"; });
+  }
+  function billingBadge(t, prefix) {
+    var b = billingOf(t);
+    var unpaid = unpaidInvoices(t);
+    var label = BILLING_LABEL[b.state];
+    var text = unpaid.length ? label + " (" + unpaid.length + ")" : label;
+    var aria = "Voir l'historique des factures de " + t.name + " — " + text;
+    return '<button type="button" class="badge badge-billing" data-billing="' + b.state + '" data-invoices="' + t.id + '" aria-haspopup="dialog" aria-label="' + esc(aria) + '" title="' + esc(aria) + '" data-od-id="' + (prefix || "billing-badge") + "-" + t.id + '">' +
+      BILLING_ICON[b.state] + "<span>" + esc(text) + "</span></button>";
+  }
+  /* ── Filtering & sorting ──────────────────────────────────── */
+  function baseList() {
+    var list = TENANTS.slice();
+    if (state.status !== "all") {
+      list = list.filter(function (t) { return t.status === state.status; });
+    }
+    if (state.plan !== "all") {
+      list = list.filter(function (t) { return t.plan === state.plan; });
+    }
+    if (state.after) {
+      list = list.filter(function (t) { return t.created >= state.after; });
+    }
+    var q = state.query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(function (t) {
+        return t.name.toLowerCase().indexOf(q) !== -1 ||
+          t.domain.toLowerCase().indexOf(q) !== -1 ||
+          t.email.toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    return list;
+  }
+  function sorted(list) {
+    return list.slice().sort(function (a, b) {
+      var r = 0;
+      if (state.sort === "name") r = a.name.localeCompare(b.name, "fr");
+      else if (state.sort === "users") r = a.used - b.used;
+      else r = b.ago - a.ago;
+      return state.dir === "asc" ? r : -r;
+    });
+  }
+  /* ── Rendering ────────────────────────────────────────────── */
+  function statusBadge(t) {
+    return '<span class="badge" data-status="' + t.status + '"><span class="dot"></span>' + esc(STATUS[t.status].label) + "</span>";
+  }
+  function rowHtml(t) {
+    var pct = userPct(t);
+    var tight = isTight(t);
+    return '<tr data-id="' + t.id + '"' + (state.selected[t.id] ? ' data-selected="true"' : "") + ">" +
+      '<td class="cell-check"><input type="checkbox" class="check" data-check="' + t.id + '"' + (state.selected[t.id] ? " checked" : "") + ' aria-label="Sélectionner ' + esc(t.name) + '"></td>' +
+      '<td class="cell-tenant"><div class="tenant-cell"><span class="logo-tile" aria-hidden="true">' + esc(initials(t.name)) + '</span><span class="who"><b><button type="button" class="link-btn" data-open="' + t.id + '">' + esc(t.name) + "</button></b><span>" + esc(t.email) + "</span></span></div></td>" +
+      '<td class="col-domain"><span class="domain-cell">' + esc(t.domain) + (t.custom ? '<span class="domain-flag">Perso</span>' : "") + "</span></td>" +
+      "<td class=\"col-status\">" + statusBadge(t) + "</td>" +
+      '<td class="col-billing">' + billingBadge(t) + "</td>" +
+      '<td class="col-plan"><span class="plan-name">' + esc(PLANS[t.plan].label) + '</span><span class="plan-note">' + t.limit + " utilisateurs max</span></td>" +
+      '<td class="col-users"><span class="user-ratio"><b>' + t.used + '</b> <span>/ ' + t.limit + "</span></span>" +
+      '<div class="mini-bar" data-tight="' + (tight ? "true" : "false") + '" role="img" aria-label="' + t.used + ' sur ' + t.limit + ' utilisateurs"><span style="width:' + pct + '%"></span></div></td>' +
+      '<td class="col-activity"><span class="activity-cell">' + esc(relTime(t)) + "<span>Créé le " + esc(fmtDate(t.created)) + "</span></span></td>" +
+      '<td class="col-actions"><button type="button" class="icon-btn" data-menu-btn="' + t.id + '" aria-haspopup="menu" aria-label="Actions pour ' + esc(t.name) + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="5" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="12" cy="19" r="1.4"/></svg></button></td>' +
+      "</tr>";
+  }
+  function renderStats() {
+    var active = 0, paused = 0, banned = 0, enterprise = 0, used = 0, limit = 0, quota = 0;
+    TENANTS.forEach(function (t) {
+      if (t.status === "active") active++;
+      else if (t.status === "paused") paused++;
+      else banned++;
+      if (t.plan === "enterprise") enterprise++;
+      used += t.used; limit += t.limit;
+      if (isTight(t)) quota++;
+    });
+    document.getElementById("statTotal").textContent = TENANTS.length;
+    document.getElementById("statActive").textContent = active;
+    document.getElementById("statPaused").textContent = paused;
+    document.getElementById("statBanned").textContent = banned;
+    document.getElementById("statUsersUsed").textContent = used;
+    document.getElementById("statUsersTotal").textContent = limit;
+    document.getElementById("statEnterprise").textContent = enterprise;
+    document.getElementById("statEnterprisePct").textContent = Math.round((enterprise / TENANTS.length) * 100);
+    document.getElementById("statQuota").textContent = quota;
+    var pct = Math.round((used / limit) * 100);
+    document.getElementById("userFill").style.width = pct + "%";
+    document.querySelector(".user-bar").setAttribute("aria-label", used + " utilisateurs actifs sur " + limit);
+    document.getElementById("navTenantsCount").textContent = TENANTS.length;
+  }
+  function render() {
+    var list = sorted(baseList());
+    var pages = Math.max(1, Math.ceil(list.length / state.size));
+    if (state.page > pages) state.page = pages;
+    if (state.page < 1) state.page = 1;
+    var start = (state.page - 1) * state.size;
+    var rows = list.slice(start, start + state.size);
+    body.innerHTML = rows.map(rowHtml).join("");
+    emptyState.hidden = rows.length !== 0;
+    tableWrap.hidden = rows.length === 0;
+    var selectedOnPage = rows.filter(function (t) { return state.selected[t.id]; }).length;
+    checkAll.checked = rows.length > 0 && selectedOnPage === rows.length;
+    checkAll.indeterminate = selectedOnPage > 0 && selectedOnPage < rows.length;
+    toolbarNote.textContent = list.length === TENANTS.length
+      ? TENANTS.length + " clients"
+      : list.length + " client" + (list.length > 1 ? "s" : "") + " sur " + TENANTS.length;
+    rangeLabel.textContent = list.length
+      ? (start + 1) + "–" + Math.min(start + state.size, list.length) + " sur " + list.length + " client" + (list.length > 1 ? "s" : "")
+      : "Aucun résultat";
+    var html = '<button type="button" class="page-btn" data-page="prev"' + (state.page === 1 ? " disabled" : "") + ' aria-label="Page précédente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>';
+    for (var p = 1; p <= pages; p++) {
+      html += '<button type="button" class="page-btn" data-page="' + p + '"' + (p === state.page ? ' aria-current="true"' : "") + ">" + p + "</button>";
+    }
+    html += '<button type="button" class="page-btn" data-page="next"' + (state.page === pages ? " disabled" : "") + ' aria-label="Page suivante"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>';
+    pager.innerHTML = html;
+    pager.style.visibility = list.length ? "visible" : "hidden";
+    var count = selectedIds().length;
+    bulkBar.setAttribute("data-show", count ? "true" : "false");
+    bulkCount.textContent = count + (count > 1 ? " sélectionnés" : " sélectionné");
+    document.body.setAttribute("data-bulk", count ? "true" : "false");
+    persist();
+  }
+  /* ── Toasts ───────────────────────────────────────────────── */
+  function toast(title, detail, tone) {
+    var el = document.createElement("div");
+    el.className = "toast";
+    if (tone === "warn") el.setAttribute("data-tone", "warn");
+    var icon = tone === "warn"
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="8 12 11 15 16 9"/></svg>';
+    el.innerHTML = icon + "<div><b>" + esc(title) + "</b><span>" + esc(detail) + "</span></div>";
+    toasts.appendChild(el);
+    setTimeout(function () {
+      el.style.opacity = "0";
+      el.style.transform = "translateY(6px)";
+      setTimeout(function () { el.remove(); }, 200);
+    }, 4200);
+  }
+  /* ── Row menu ─────────────────────────────────────────────── */
+  function openRowMenu(btn) {
+    activeTenantId = btn.dataset.menuBtn;
+    var t = tenantById(activeTenantId);
+    var rect = btn.getBoundingClientRect();
+    rowMenu.style.left = Math.max(8, Math.min(rect.right - 232, window.innerWidth - 240)) + "px";
+    var top = rect.bottom + 6;
+    if (top + rowMenu.offsetHeight > window.innerHeight - 8) top = Math.max(8, rect.top - rowMenu.offsetHeight - 6);
+    rowMenu.style.top = top + "px";
+    rowMenu.setAttribute("data-show", "true");
+    document.getElementById("toggleStatusLabel").textContent = t.status === "active" ? "Suspendre le tenant" : "Activer le tenant";
+  }
+  function closeRowMenu() { rowMenu.setAttribute("data-show", "false"); }
+  rowMenu.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    var t = tenantById(activeTenantId);
+    var action = btn.dataset.action;
+    closeRowMenu();
+    if (!t) return;
+    if (action === "view") openDrawer(t.id);
+    else if (action === "edit") openForm(t.id);
+    else if (action === "toggle") toggleStatus(t);
+    else if (action === "impersonate") openImpersonate(t.id);
+  });
+  body.addEventListener("click", function (e) {
+    var mb = e.target.closest("[data-menu-btn]");
+    if (mb) {
+      e.stopPropagation();
+      if (rowMenu.getAttribute("data-show") === "true" && rowMenu.dataset.for === mb.dataset.menuBtn) { closeRowMenu(); return; }
+      rowMenu.dataset.for = mb.dataset.menuBtn;
+      openRowMenu(mb);
+      return;
+    }
+    var open = e.target.closest("[data-open]");
+    if (open) {
+      e.stopPropagation();
+      openDrawer(open.dataset.open);
+      return;
+    }
+    if (e.target.closest("input, button, select, a, label")) return;
+    var tr = e.target.closest("tr[data-id]");
+    if (tr) openDrawer(tr.dataset.id);
+  });
+  document.addEventListener("click", function (e) {
+    if (!rowMenu.contains(e.target)) closeRowMenu();
+  });
+  function toggleStatus(t) {
+    t.status = t.status === "active" ? "paused" : "active";
+    render();
+    renderStats();
+    toast(
+      t.status === "paused" ? "Client suspendu" : "Client réactivé",
+      t.name + " · " + STATUS[t.status].label.toLowerCase(),
+      t.status === "paused" ? "warn" : ""
+    );
+  }
+  /* ── Selection ────────────────────────────────────────────── */
+  body.addEventListener("change", function (e) {
+    var cb = e.target.closest("[data-check]");
+    if (!cb) return;
+    var id = cb.dataset.check;
+    if (cb.checked) state.selected[id] = true; else delete state.selected[id];
+    var tr = cb.closest("tr");
+    if (tr) tr.setAttribute("data-selected", cb.checked ? "true" : "false");
+    var rows = body.querySelectorAll("tr");
+    var onPage = 0;
+    rows.forEach(function (r) { if (state.selected[r.dataset.id]) onPage++; });
+    checkAll.checked = rows.length > 0 && onPage === rows.length;
+    checkAll.indeterminate = onPage > 0 && onPage < rows.length;
+    var count = selectedIds().length;
+    bulkBar.setAttribute("data-show", count ? "true" : "false");
+    bulkCount.textContent = count + (count > 1 ? " sélectionnés" : " sélectionné");
+    document.body.setAttribute("data-bulk", count ? "true" : "false");
+  });
+  checkAll.addEventListener("change", function () {
+    var checked = checkAll.checked;
+    body.querySelectorAll("[data-check]").forEach(function (cb) {
+      if (checked) state.selected[cb.dataset.check] = true; else delete state.selected[cb.dataset.check];
+    });
+    render();
+  });
+  document.getElementById("bulkClear").addEventListener("click", function () { clearSelection(); render(); });
+  document.getElementById("bulkActivate").addEventListener("click", function () {
+    var ids = selectedIds();
+    ids.forEach(function (id) { var t = tenantById(id); if (t) t.status = "active"; });
+    clearSelection();
+    render();
+    renderStats();
+    toast("Clients réactivés", ids.length + (ids.length > 1 ? " clients sont de nouveau actifs." : " client est de nouveau actif."));
+  });
+  document.getElementById("bulkSuspend").addEventListener("click", function () {
+    var ids = selectedIds();
+    ids.forEach(function (id) { var t = tenantById(id); if (t) t.status = "paused"; });
+    clearSelection();
+    render();
+    renderStats();
+    toast("Clients suspendus", ids.length + (ids.length > 1 ? " clients sont en pause." : " client est en pause."), "warn");
+  });
+  /* ── Tenant drawer ────────────────────────────────────────── */
+  function openDrawer(id) {
+    var t = tenantById(id);
+    if (!t) return;
+    activeTenantId = id;
+    closeRowMenu();
+    scrimMode = "drawer";
+    scrim.setAttribute("data-show", "true");
+    drawer.setAttribute("data-show", "true");
+    document.body.style.overflow = "hidden";
+    document.getElementById("drawerLogo").textContent = initials(t.name);
+    document.getElementById("drawerTitle").textContent = t.name;
+    document.getElementById("drawerDomain").textContent = t.domain;
+    document.getElementById("drawerStatus").innerHTML = statusBadge(t);
+    document.getElementById("drawerPlan").innerHTML = '<span class="plan-name">' + esc(PLANS[t.plan].label) + "</span><span class=\"plan-note\">" + esc(PLANS[t.plan].note) + "</span>";
+    document.getElementById("drawerUsers").innerHTML = '<span class="user-ratio"><b>' + t.used + "</b> <span>/ " + t.limit + " utilisateurs</span></span>" +
+      '<div class="mini-bar" data-tight="' + (isTight(t) ? "true" : "false") + '" role="img" aria-label="' + t.used + " sur " + t.limit + ' utilisateurs"><span style="width:' + userPct(t) + '%"></span></div>';
+    document.getElementById("drawerCreated").textContent = fmtDate(t.created);
+    document.getElementById("drawerEmail").textContent = t.email;
+    document.getElementById("drawerDomainFull").textContent = t.domain + (t.custom ? " · domaine personnalisé" : " · sous-domaine Atrium");
+    document.getElementById("drawerBilling").innerHTML = billingBadge(t, "drawer-billing");
+    var events = [
+      { title: "Session utilisateur ouverte", meta: fmtDateTime(t) },
+      { title: "Utilisateur ajouté sur le plan " + PLANS[t.plan].label, meta: "Il y a " + Math.max(1, Math.round(t.ago / 6)) + " jours" },
+      { title: "Facturation annuelle mise à jour", meta: "Il y a " + Math.max(1, Math.round(t.ago / 24)) + " jours" }
+    ];
+    document.getElementById("drawerTimeline").innerHTML = events.map(function (e) {
+      return "<li><b>" + esc(e.title) + "</b><span>" + esc(e.meta) + "</span></li>";
+    }).join("");
+    setTimeout(function () { document.getElementById("drawerClose").focus(); }, 80);
+  }
+  function closeDrawer() {
+    drawer.setAttribute("data-show", "false");
+    if (scrimMode === "drawer") { scrim.setAttribute("data-show", "false"); scrimMode = null; }
+    document.body.style.overflow = "";
+  }
+  document.getElementById("drawerClose").addEventListener("click", closeDrawer);
+  document.getElementById("drawerCloseBtn").addEventListener("click", closeDrawer);
+  document.getElementById("drawerEdit").addEventListener("click", function () {
+    var id = activeTenantId;
+    closeDrawer();
+    openForm(id);
+  });
+  /* ── Tenant form modal ────────────────────────────────────── */
+  function openForm(id) {
+    editingId = id || null;
+    tenantForm.reset();
+    ["fieldName", "fieldDomain", "fieldUsers", "fieldEmail"].forEach(function (f) {
+      document.getElementById(f).removeAttribute("data-invalid");
+    });
+    var t = id ? tenantById(id) : null;
+    document.getElementById("modalTitle").textContent = t ? "Éditer le tenant" : "Créer un tenant";
+    document.getElementById("modalSubtitle").textContent = t
+      ? "Mettez à jour les informations de ce client. Les changements sont appliqués immédiatement."
+      : "Le client sera provisionné avec son sous-domaine et son plan d'abonnement.";
+    document.getElementById("tenantSubmitLabel").textContent = t ? "Enregistrer" : "Créer le tenant";
+    document.getElementById("tenantPlan").value = t ? t.plan : "pro";
+    document.getElementById("tenantUsers").value = t ? t.limit : PLANS.pro.users;
+    document.getElementById("tenantName").value = t ? t.name : "";
+    document.getElementById("tenantDomain").value = t ? t.domain : "";
+    document.getElementById("tenantEmail").value = t ? t.email : "";
+    updatePlanHelp();
+    modalWrap.hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(function () { document.getElementById("tenantName").focus(); }, 60);
+  }
+  function closeForm() {
+    modalWrap.hidden = true;
+    document.body.style.overflow = "";
+    editingId = null;
+  }
+  function updatePlanHelp() {
+    document.getElementById("tenantPlanHelp").textContent = PLANS[document.getElementById("tenantPlan").value].note;
+  }
+  document.getElementById("tenantPlan").addEventListener("change", function () {
+    updatePlanHelp();
+    var users = document.getElementById("tenantUsers");
+    if (!editingId) {
+      users.value = PLANS[this.value].users;
+      users.removeAttribute("data-invalid");
+    }
+  });
+  document.getElementById("createTenantBtn").addEventListener("click", function () { openForm(null); });
+  document.getElementById("tenantCancel").addEventListener("click", closeForm);
+  modalWrap.addEventListener("click", function (e) { if (e.target === modalWrap) closeForm(); });
+  document.getElementById("modalScrim").addEventListener("click", closeForm);
+  ["tenantName", "tenantDomain", "tenantUsers", "tenantEmail"].forEach(function (id) {
+    document.getElementById(id).addEventListener("input", function () {
+      var field = document.getElementById(id).closest(".field");
+      if (field) field.removeAttribute("data-invalid");
+    });
+  });
+  tenantForm.addEventListener("submit", function (e) { e.preventDefault(); submitForm(); });
+  function submitForm() {
+    var btn = document.getElementById("tenantSubmit");
+    var name = document.getElementById("tenantName").value.trim();
+    var domain = document.getElementById("tenantDomain").value.trim().toLowerCase();
+    var email = document.getElementById("tenantEmail").value.trim();
+    var plan = document.getElementById("tenantPlan").value;
+    var limit = parseInt(document.getElementById("tenantUsers").value, 10);
+    var nameField = document.getElementById("fieldName");
+    var domainField = document.getElementById("fieldDomain");
+    var usersField = document.getElementById("fieldUsers");
+    var emailField = document.getElementById("fieldEmail");
+    var ok = true;
+    if (!name) { nameField.setAttribute("data-invalid", "true"); ok = false; }
+    if (!/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?\.[a-z]{2,}$/.test(domain)) { domainField.setAttribute("data-invalid", "true"); ok = false; }
+    if (!(limit >= 1 && limit <= 500)) { usersField.setAttribute("data-invalid", "true"); ok = false; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) { emailField.setAttribute("data-invalid", "true"); ok = false; }
+    var duplicate = TENANTS.some(function (t) {
+      return t.domain === domain && (!editingId || t.id !== editingId);
+    });
+    if (duplicate) { domainField.setAttribute("data-invalid", "true"); ok = false; }
+    if (!ok) {
+      var first = modalWrap.querySelector('[data-invalid="true"] input, [data-invalid="true"] select');
+      if (first) first.focus();
+      return;
+    }
+    btn.setAttribute("aria-busy", "true");
+    setTimeout(function () {
+      btn.removeAttribute("aria-busy");
+      if (editingId) {
+        var t = tenantById(editingId);
+        t.name = name;
+        t.domain = domain;
+        t.email = email;
+        t.plan = plan;
+        t.limit = limit;
+        if (t.used > limit) t.used = limit;
+        t.custom = domain.indexOf(".atrium.app") === -1;
+        closeForm();
+        render();
+        renderStats();
+        toast("Client mis à jour", name + " · " + PLANS[plan].label);
+      } else {
+        var created = new Date(DEMO_NOW.getTime());
+        var iso = created.getFullYear() + "-" + ("0" + (created.getMonth() + 1)).slice(-2) + "-" + ("0" + created.getDate()).slice(-2);
+        TENANTS.unshift({
+          id: "t" + Date.now(),
+          name: name,
+          domain: domain,
+          custom: domain.indexOf(".atrium.app") === -1,
+          status: "active",
+          plan: plan,
+          used: 0,
+          limit: limit,
+          email: email,
+          created: iso,
+          ago: 0
+        });
+        state.page = 1;
+        closeForm();
+        render();
+        renderStats();
+        toast("Client créé", name + " · " + domain + " · plan " + PLANS[plan].label);
+      }
+    }, 700);
+  }
+  /* ── Impersonation modal ──────────────────────────────────── */
+  function openImpersonate(id) {
+    var t = tenantById(id);
+    if (!t) return;
+    activeTenantId = id;
+    document.getElementById("impersonateTitle").textContent = "Se connecter en tant que " + t.name;
+    document.getElementById("impersonateSubtitle").textContent = "Session ouverte sur " + t.domain + " avec les droits du client.";
+    impersonateWrap.hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(function () { document.getElementById("impersonateCancel").focus(); }, 60);
+  }
+  function closeImpersonate() {
+    impersonateWrap.hidden = true;
+    document.body.style.overflow = "";
+  }
+  document.getElementById("impersonateCancel").addEventListener("click", closeImpersonate);
+  document.getElementById("impersonateScrim").addEventListener("click", closeImpersonate);
+  impersonateWrap.addEventListener("click", function (e) { if (e.target === impersonateWrap) closeImpersonate(); });
+  document.getElementById("impersonateConfirm").addEventListener("click", function () {
+    var t = tenantById(activeTenantId);
+    closeImpersonate();
+    if (t) toast("Session d'impersonation ouverte", "Vous êtes connecté en tant que " + t.name + ".", "warn");
+  });
+  /* ── Invoice history ───────────────────────────────────────── */
+  var invoiceWrap = document.getElementById("invoiceWrap");
+  var invoiceTrigger = null;
+  function noteBox(tone, kind, text) {
+    var icon = kind === "danger"
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><line x1="12" y1="7" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>';
+    return '<div class="note-box"' + (tone ? ' data-tone="' + tone + '"' : "") + ">" + icon + "<div><span>" + esc(text) + "</span></div></div>";
+  }
+  function openInvoices(id, trigger) {
+    var t = tenantById(id);
+    if (!t) return;
+    invoiceTrigger = trigger || null;
+    var b = billingOf(t);
+    var inv = invoicesFor(t);
+    var unpaid = inv.filter(function (f) { return f.state !== "paid"; });
+    var total = unpaid.reduce(function (s, f) { return s + f.amount; }, 0);
+    var price = PLAN_PRICE[t.plan] || 0;
+    document.getElementById("invoiceTitle").textContent = "Historique des factures";
+    document.getElementById("invoiceSubtitle").textContent = t.name + " · plan " + PLANS[t.plan].label + " · " + t.domain;
+
+    var thirdLabel = "Dernier règlement";
+    var thirdValue = "—";
+    if (b.state === "pending") {
+      var pend = inv.filter(function (f) { return f.state === "pending"; })[0];
+      thirdLabel = "Échéance";
+      thirdValue = pend ? fmtFull(pend.due) : "—";
+    } else if (b.state === "overdue") {
+      var oldest = unpaid[unpaid.length - 1];
+      thirdLabel = "Retard le plus ancien";
+      thirdValue = oldest ? Math.round((DEMO_NOW.getTime() - oldest.due.getTime()) / 86400000) + " jours" : "—";
+    } else {
+      var paid = inv.filter(function (f) { return f.state === "paid"; })[0];
+      thirdValue = paid && paid.paidAt ? fmtFull(paid.paidAt) : "—";
+    }
+    var summary = "";
+    summary += "<div><dt>Montant mensuel</dt><dd>" + (price ? esc(euro(price)) + " HT" : "Gratuit") + "</dd></div>";
+    summary += '<div><dt>Factures non réglées</dt><dd' + (unpaid.length ? ' class="danger"' : "") + ">" + (unpaid.length ? unpaid.length + " · " + esc(euro(total)) : "Aucune") + "</dd></div>";
+    summary += "<div><dt>" + esc(thirdLabel) + "</dt><dd>" + esc(thirdValue) + "</dd></div>";
+    document.getElementById("invoiceSummary").innerHTML = summary;
+
+    var notice = "";
+    if (b.state === "overdue") {
+      var oldestDue = unpaid.length ? unpaid[unpaid.length - 1].due : null;
+      notice = noteBox("danger", "danger",
+        unpaid.length + (unpaid.length > 1 ? " factures sont" : " facture est") + " en retard de paiement" +
+        (oldestDue ? " depuis le " + fmtFull(oldestDue) : "") +
+        ". Aucune nouvelle facture n'est émise tant que le solde n'est pas réglé.");
+    } else if (b.state === "pending") {
+      var pend2 = inv.filter(function (f) { return f.state === "pending"; })[0];
+      notice = noteBox("", "warn",
+        "La facture de " + (pend2 ? pend2.period.toLowerCase() : "ce mois") + " a été émise" +
+        (pend2 ? " et arrive à échéance le " + fmtFull(pend2.due) : "") + ".");
+    }
+    document.getElementById("invoiceNotice").innerHTML = notice;
+
+    var list = document.getElementById("invoiceList");
+    if (!inv.length) {
+      list.innerHTML = '<li class="inv-empty">Ce plan est gratuit : aucune facture n’est émise.</li>';
+    } else {
+      list.innerHTML = inv.map(function (f) {
+        var label = f.state === "paid" ? "Payée" : f.state === "pending" ? "En attente" : "Impayée";
+        var meta = "Échéance le " + fmtFull(f.due);
+        if (f.paidAt) meta += " · réglée le " + fmtFull(f.paidAt);
+        else if (f.state === "overdue") meta += " · en retard de " + Math.round((DEMO_NOW.getTime() - f.due.getTime()) / 86400000) + " jours";
+        return '<li class="inv-row">' +
+          '<div class="inv-main"><b>' + esc(f.num) + "</b><span>" + esc(f.period) + " · émise le " + esc(fmtFull(f.issued)) + "</span><span>" + esc(meta) + "</span></div>" +
+          '<div class="inv-side"><b class="inv-amount">' + esc(euro(f.amount)) + '</b><span class="inv-status" data-state="' + f.state + '">' + esc(label) + "</span></div>" +
+          "</li>";
+      }).join("");
+    }
+    invoiceWrap.hidden = false;
+    document.body.style.overflow = "hidden";
+    setTimeout(function () { document.getElementById("invoiceClose").focus(); }, 60);
+  }
+  function closeInvoices() {
+    invoiceWrap.hidden = true;
+    if (drawer.getAttribute("data-show") !== "true") document.body.style.overflow = "";
+    if (invoiceTrigger && invoiceTrigger !== document.body && document.body.contains(invoiceTrigger)) invoiceTrigger.focus();
+    invoiceTrigger = null;
+  }
+  document.getElementById("invoiceClose").addEventListener("click", closeInvoices);
+  document.getElementById("invoiceScrim").addEventListener("click", closeInvoices);
+  invoiceWrap.addEventListener("click", function (e) { if (e.target === invoiceWrap) closeInvoices(); });
+  document.addEventListener("click", function (e) {
+    var trigger = e.target.closest("[data-invoices]");
+    if (!trigger) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openInvoices(trigger.dataset.invoices, trigger);
+  });
+  /* ── Filters ──────────────────────────────────────────────── */
+  function resetFilters() {
+    state.query = ""; state.status = "all"; state.plan = "all"; state.after = ""; state.page = 1;
+    searchInput.value = ""; statusFilter.value = "all"; planFilter.value = "all"; dateFilter.value = "";
+    render();
+  }
+  searchInput.addEventListener("input", function () { state.query = this.value; state.page = 1; render(); });
+  statusFilter.addEventListener("change", function () { state.status = this.value; state.page = 1; render(); });
+  planFilter.addEventListener("change", function () { state.plan = this.value; state.page = 1; render(); });
+  dateFilter.addEventListener("change", function () { state.after = this.value; state.page = 1; render(); });
+  document.getElementById("resetFilters").addEventListener("click", resetFilters);
+  document.getElementById("resetFiltersEmpty").addEventListener("click", resetFilters);
+  pageSize.addEventListener("change", function () {
+    state.size = parseInt(this.value, 10);
+    state.page = 1;
+    render();
+  });
+  document.querySelectorAll("thead th.sortable button").forEach(function (btn) {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var key = btn.closest("th").dataset.sort;
+      if (state.sort === key) state.dir = state.dir === "asc" ? "desc" : "asc";
+      else { state.sort = key; state.dir = key === "activity" ? "desc" : "asc"; }
+      document.querySelectorAll("thead th.sortable").forEach(function (th) { th.removeAttribute("aria-sort"); });
+      btn.closest("th").setAttribute("aria-sort", state.dir === "asc" ? "ascending" : "descending");
+      state.page = 1;
+      render();
+    });
+  });
+  pager.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-page]");
+    if (!btn || btn.disabled) return;
+    var value = btn.dataset.page;
+    if (value === "prev") state.page = Math.max(1, state.page - 1);
+    else if (value === "next") state.page = state.page + 1;
+    else state.page = parseInt(value, 10);
+    render();
+  });
+  /* ── Scrim, sidebar, keyboard ─────────────────────────────── */
+  scrim.addEventListener("click", function () {
+    if (scrimMode === "drawer") closeDrawer();
+    else if (scrimMode === "sidebar") { sidebar.setAttribute("data-show", "false"); scrim.setAttribute("data-show", "false"); scrimMode = null; }
+  });
+  document.getElementById("menuBtn").addEventListener("click", function () {
+    var open = sidebar.getAttribute("data-show") === "true";
+    sidebar.setAttribute("data-show", open ? "false" : "true");
+    scrimMode = open ? null : "sidebar";
+    scrim.setAttribute("data-show", open ? "false" : "true");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (!invoiceWrap.hidden) { closeInvoices(); return; }
+    if (!impersonateWrap.hidden) { closeImpersonate(); return; }
+    if (!modalWrap.hidden) { closeForm(); return; }
+    if (rowMenu.getAttribute("data-show") === "true") { closeRowMenu(); return; }
+    if (drawer.getAttribute("data-show") === "true") { closeDrawer(); return; }
+    if (sidebar.getAttribute("data-show") === "true") { sidebar.setAttribute("data-show", "false"); scrim.setAttribute("data-show", "false"); scrimMode = null; }
+  });
+  /* ── Boot ─────────────────────────────────────────────────── */
+  pageSize.value = String(state.size);
+  document.querySelectorAll("thead th.sortable").forEach(function (th) {
+    if (th.dataset.sort === state.sort) th.setAttribute("aria-sort", state.dir === "asc" ? "ascending" : "descending");
+  });
+  renderStats();
+  render();
+})();
+</script>
+</body>
+</html>
+
