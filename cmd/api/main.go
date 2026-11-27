@@ -17,7 +17,9 @@ import (
 	"github.com/Massad/gin-boilerplate/internal/platform/config"
 	pgdb "github.com/Massad/gin-boilerplate/internal/platform/db"
 	"github.com/Massad/gin-boilerplate/internal/platform/redisdb"
+	"github.com/Massad/gin-boilerplate/internal/platform/validate"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/joho/godotenv"
 )
 
@@ -102,6 +104,11 @@ func main() {
 	if os.Getenv("ENV") == "PRODUCTION" {
 		gin.SetMode(gin.ReleaseMode)
 	}
+
+	// The binding-validator global is pinned here (the unique canonical site),
+	// not inside app.NewRouter: the composition root must not mutate global
+	// state, and every form with the fullName tag relies on this validator.
+	binding.Validator = new(validate.DefaultValidator)
 
 	// The pools are connected BEFORE the router is assembled: the module
 	// repositories capture the pool Store values at wiring time, so the
