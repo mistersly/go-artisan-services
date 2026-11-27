@@ -1,7 +1,7 @@
 # Règles d'architecture Go — modulaire par domaine
 
 > Source unique : `.kilo/plans/1795597264251-architecture-modulaire-par-domaine-design.md` (design acté, review EGM, décisions 2026-11-25).
-> **Statut** : l'architecture modulaire n'est pas encore implantée. Ces règles décrivent la cible de la migration : appliquer chaque règle au moment de sa phase, ne jamais présumer la structure cible dans le code actuel. Les invariants « multi-tenant » ci-dessous s'appliquent déjà et doivent être préservés pendant TOUTE la migration.
+> **Statut** : migration modulaire ACHEVÉE (Phases 0-8 `[Fait]` — dernière marque 2026-11-27, merge PR #3 `cfdf05c`). Ces règles décrivent désormais la structure effective du code et s'imposent à tout nouveau développement : layout, ports consommateurs, `pgdb.WithinTx`/`pgdb.InTx`, guard CI anti-retour aux paquets racine. Les invariants « multi-tenant » restent en vigueur en permanence.
 
 ## Layout cible
 
