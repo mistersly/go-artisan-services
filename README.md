@@ -487,6 +487,12 @@ app/                          Frontend workspace (Vite + React 19, Storybook)
 | `go test -mod=readonly -count=1 -race -v ./internal/modules/invoice` | PDF tests without DB services (needs `pdftotext`) |
 | `go build -mod=readonly ./cmd/api` / `go vet -mod=readonly ./...` | Build + static analysis (always with `-mod=readonly`) |
 
+> **Tip — RTK**: commands in this repo are expected to run through
+> [RTK](https://github.com/rtk-ai/rtk) (`rtk git status`, `rtk cargo test`,
+> `rtk npm run build`), a CLI proxy that condenses command output to save
+> tokens without changing behavior. Install it before contributing — see the
+> [repo](https://github.com/rtk-ai/rtk) for instructions.
+
 ## Previous Versions
 
 - **v2.0** — JWT authentication with Redis (current architecture)
