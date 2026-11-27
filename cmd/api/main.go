@@ -103,16 +103,10 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	r := app.NewRouter(app.Deps{
-		TemplateGlob: "./public/html/*",
-		Env:          os.Getenv("ENV"),
-		Secrets: auth.Secrets{
-			Access:      os.Getenv("ACCESS_SECRET"),
-			Refresh:     os.Getenv("REFRESH_SECRET"),
-			AdminAccess: os.Getenv("ADMIN_ACCESS_SECRET"),
-		},
-	})
-
+	// The pools are connected BEFORE the router is assembled: the module
+	// repositories capture the pool Store values at wiring time, so the
+	// composition must resolve them after Connect (the httptest suites inject
+	// pre-initialized stores; the real process must do the same).
 	ctx := context.Background()
 	if err := pgdb.InitTenant(ctx, os.Getenv); err != nil {
 		log.Fatal(err)
@@ -124,6 +118,16 @@ func main() {
 	if err := redisdb.InitRedis(); err != nil {
 		log.Fatal(err)
 	}
+
+	r := app.NewRouter(app.Deps{
+		TemplateGlob: "./public/html/*",
+		Env:          os.Getenv("ENV"),
+		Secrets: auth.Secrets{
+			Access:      os.Getenv("ACCESS_SECRET"),
+			Refresh:     os.Getenv("REFRESH_SECRET"),
+			AdminAccess: os.Getenv("ADMIN_ACCESS_SECRET"),
+		},
+	})
 
 	port := os.Getenv("PORT")
 

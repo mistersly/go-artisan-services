@@ -29,7 +29,7 @@ func NewHandler(users *Service) Handler {
 // @Produce json
 // @Param article body user.LoginForm true "User"
 // @Success 	 200  {object}  user.UserLoginResponse
-// @Failure      406  {object}  models.MessageResponse
+// @Failure      406  {object}  auth.MessageResponse
 // @Router /user/login [post]
 func (h Handler) Login(c *gin.Context) {
 	var loginForm LoginForm
@@ -62,7 +62,7 @@ func (h Handler) Login(c *gin.Context) {
 // @Produce json
 // @Param article body user.RegisterForm true "User"
 // @Success 	 200  {object}  user.UserLoginResponse
-// @Failure      406  {object}  models.MessageResponse
+// @Failure      406  {object}  auth.MessageResponse
 // @Router /user/register [post]
 func (h Handler) Register(c *gin.Context) {
 	var registerForm RegisterForm

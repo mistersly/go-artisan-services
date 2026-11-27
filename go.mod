@@ -1,6 +1,6 @@
 module github.com/Massad/gin-boilerplate
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/brianvoe/gofakeit/v7 v7.18.11

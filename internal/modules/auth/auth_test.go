@@ -55,7 +55,9 @@ func TestAccessTokenRejectedAfterLogout(t *testing.T) {
 			"role":      c.GetString("role"),
 		})
 	})
-	r.GET("/logout", auth.TokenAuth(svc), auth.NewHandler(svc).UserLogout)
+	// The flow stays nil on the logout-only minimal router (same convention
+	// as the CLI nil ports: the path under test never touches it).
+	r.GET("/logout", auth.TokenAuth(svc), auth.NewHandler(svc, nil).UserLogout)
 	for _, step := range []struct {
 		path   string
 		status int

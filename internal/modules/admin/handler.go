@@ -33,7 +33,7 @@ func NewHandler(admins *Service, tokens TokenService) Handler {
 // @Produce json
 // @Param auth body admin.LoginForm true "Admin"
 // @Success 	 200  {object}  auth.AdminToken
-// @Failure      406  {object}  models.MessageResponse
+// @Failure      406  {object}  auth.MessageResponse
 // @Router /admin/login [post]
 func (h Handler) Login(c *gin.Context) {
 	var loginForm LoginForm
@@ -70,7 +70,7 @@ func (h Handler) Login(c *gin.Context) {
 // @Tags Admin
 // @Produce json
 // @Success 	 200  {object}  tenant.AllTenantResponse
-// @Failure      406  {object}  models.MessageResponse
+// @Failure      406  {object}  auth.MessageResponse
 // @Router /admin/tenants [get]
 func (h Handler) Tenants(c *gin.Context) {
 	tenants, err := h.admins.AllTenants()
@@ -90,8 +90,8 @@ func (h Handler) Tenants(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param status body admin.TenantStatusForm true "Status"
-// @Success 	 200  {object}  models.MessageResponse
-// @Failure      406  {object}  models.MessageResponse
+// @Success 	 200  {object}  auth.MessageResponse
+// @Failure      406  {object}  auth.MessageResponse
 // @Router /admin/tenants/{id}/status [post]
 func (h Handler) SetTenantStatus(c *gin.Context) {
 	adminID, _ := uuid.Parse(c.GetString("adminID"))

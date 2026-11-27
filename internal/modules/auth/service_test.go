@@ -18,6 +18,7 @@ import (
 type fakeSessions struct {
 	created        int
 	createdValue   string
+	createdErr     error
 	fetched        int
 	fetchedUserID  uuid.UUID
 	deleted        int
@@ -28,6 +29,7 @@ type fakeSessions struct {
 	releaseCalled  int
 	releaseCode    int64
 	adminCreated   int
+	adminCreateErr error
 	adminFetched   int
 	adminFetchedID uuid.UUID
 	adminDeleted   int
@@ -38,6 +40,9 @@ type fakeSessions struct {
 func (f *fakeSessions) CreateTenantSession(userID, tenantID uuid.UUID, role string, _ *auth.TokenDetails) error {
 	f.created++
 	f.createdValue = fmt.Sprintf("%v:%v:%v", userID, tenantID, role)
+	if f.createdErr != nil {
+		return f.createdErr
+	}
 	return nil
 }
 
@@ -69,6 +74,9 @@ func (f *fakeSessions) ReleaseRefresh(string, uuid.UUID) (int64, error) {
 func (f *fakeSessions) CreateAdminSession(adminID uuid.UUID, _ *auth.AdminTokenDetails) error {
 	f.adminCreated++
 	f.adminFetchedID = adminID
+	if f.adminCreateErr != nil {
+		return f.adminCreateErr
+	}
 	return nil
 }
 

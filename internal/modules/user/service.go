@@ -65,8 +65,10 @@ var (
 )
 
 // ErrTenantSuspended is returned when the credentials are correct but the
-// tenant has been suspended: the HTTP answer is 403.
-var ErrTenantSuspended = errors.New("tenant suspended")
+// tenant has been suspended: the HTTP answer is 403. The value is the auth
+// module's sentinel: the unified login observes it across the port without
+// importing this module.
+var ErrTenantSuspended = auth.ErrTenantSuspended
 
 // Service orchestrates the user use cases on its ports: Login (status before
 // password), Register (tenant + owner in one unit of work) and the re-reads.
